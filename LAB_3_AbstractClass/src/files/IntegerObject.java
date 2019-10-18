@@ -1,8 +1,7 @@
 package files;
 
 public class IntegerObject extends Value {
-
-    private Integer value;
+    Integer value;
 
     @Override
     public String toString() {
@@ -11,52 +10,170 @@ public class IntegerObject extends Value {
 
     @Override
     public Value add(Value x) {
-        value+= ((IntegerObject) x).value;
+        if(x instanceof  IntegerObject) {
+            value += ((IntegerObject) x).value;
+        }
+        else if(x instanceof DoubleObject) {
+            value+= ((DoubleObject) x).value.intValue();
+        }
+        else if(x instanceof FloatObject){
+            value+= ((FloatObject) x).value.intValue();
+        }
+        else if(x instanceof COOValue){
+            this.add(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return this;
     }
 
     @Override
     public Value sub(Value x) {
-        value-= ((IntegerObject) x).value;
+        if(x instanceof  IntegerObject) {
+            value -= ((IntegerObject) x).value;
+        }
+        else if(x instanceof DoubleObject) {
+            value -= ((DoubleObject) x).value.intValue();
+        }
+        else if(x instanceof FloatObject){
+            value -= ((FloatObject) x).value.intValue();
+        }
+        else if(x instanceof COOValue){
+            this.sub(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return this;
     }
 
     @Override
     public Value mul(Value x) {
-        value*= ((IntegerObject) x).value;
+        if(x instanceof  IntegerObject) {
+            value *= ((IntegerObject) x).value;
+        }
+        else if(x instanceof DoubleObject) {
+            value *= ((DoubleObject) x).value.intValue();
+        }
+        else if(x instanceof FloatObject){
+            value *= ((FloatObject) x).value.intValue();
+        }
+        else if(x instanceof COOValue) {
+            this.mul(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return this;
     }
 
     @Override
     public Value div(Value x) {
-        value/= ((IntegerObject) x).value;
+        if(x instanceof  IntegerObject) {
+            value /= ((IntegerObject) x).value;
+        }
+        else if(x instanceof DoubleObject) {
+            value /= ((DoubleObject) x).value.intValue();
+        }
+        else if(x instanceof FloatObject){
+            value /= ((FloatObject) x).value.intValue();
+        }
+        else if(x instanceof COOValue){
+            this.div(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return this;
     }
 
     @Override
     public Value pow(Value x) {
-    value= (int) (Math.pow(value, ((IntegerObject) x).value));
+        if(x instanceof  IntegerObject) {
+            value= (int) (Math.pow(value, ((IntegerObject) x).value));
+        }
+        else if(x instanceof DoubleObject) {
+            value= (int) (Math.pow(value, ((DoubleObject) x).value));
+        }
+        else if(x instanceof FloatObject){
+            value= (int) (Math.pow(value, ((FloatObject) x).value));
+        }
+        else if(x instanceof COOValue) {
+            this.pow(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return this;
     }
 
     @Override
     public boolean eq(Value x) {
-        return value.equals(((IntegerObject) x).value);
+        boolean ret=false;
+        if(x instanceof  IntegerObject) {
+            ret=value.equals(((IntegerObject) x).value);;
+        }
+        else if(x instanceof DoubleObject) {
+            ret=value.equals(((DoubleObject) x).value.intValue());
+        }
+        else if(x instanceof FloatObject){
+            ret=value.equals(((FloatObject) x).value.intValue());
+        }
+        else if(x instanceof COOValue) {
+            this.eq(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
+        return ret;
     }
 
     @Override
     public boolean lte(Value x) { //less than or equal
-        return value <= ((IntegerObject) x).value;
+        boolean ret=false;
+        if(x instanceof  IntegerObject) {
+            ret=(value <= ((IntegerObject) x).value);
+        }
+        else if(x instanceof DoubleObject) {
+            ret=(value <= ((DoubleObject) x).value.intValue());
+        }
+        else if(x instanceof FloatObject){
+            ret=(value <= (((FloatObject) x).value.intValue()));
+        }
+        else if(x instanceof COOValue){
+            this.lte(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
+        return ret;
     }
 
     @Override
     public boolean gte(Value x) { //greater than or equal
-        return value >= ((IntegerObject) x).value;
+        boolean ret=false;
+        if(x instanceof  IntegerObject) {
+            ret=(value >= ((IntegerObject) x).value);
+        }
+        else if(x instanceof DoubleObject) {
+            ret=(value >= ((DoubleObject) x).value.intValue());
+        }
+        else if(x instanceof FloatObject){
+            ret=(value >= (((FloatObject) x).value.intValue()));
+        }
+        else if(x instanceof COOValue){
+            this.gte(((COOValue) x).value);
+        }
+        else{
+            throw new  IllegalArgumentException();
+        }
+        return ret;
     }
 
     @Override
     public boolean neq(Value x) {
-        return !(value.equals(((IntegerObject) x).value));
+        return !(this.eq(x));
     }
 
     @Override

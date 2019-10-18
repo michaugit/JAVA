@@ -6,7 +6,7 @@ public class Column{
     public Column(String name, Class type){
         this.name= new String(name);
         this.type= type; // mozna by zrobic walidacje wprowadzanego typu, tylko w tym przypadku nie ma to znaczenia
-        this.data= new ArrayList();
+        this.data= new ArrayList<Value>();
         this.index=0;
     }
 
@@ -14,7 +14,7 @@ public class Column{
 
     }
     protected String name;
-    protected Class type;
-    public ArrayList data;
+    protected Class<Value> type;
+    public ArrayList<Value> data;
     protected int index;
 }

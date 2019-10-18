@@ -2,6 +2,7 @@ package files;
 
 import java.io.*;
 import java.util.ArrayList;
+
 import java.util.Arrays;
 
 
@@ -11,7 +12,7 @@ public class DataFrame {
         size= 0;
     }
 
-    DataFrame(String[] name, Class<? extends Value>[] type) {
+    DataFrame(String[] name, Class<? extends Value>[] type){
         tab = new ArrayList<Column>();
         size= 0;
         int iter=0;
@@ -20,91 +21,135 @@ public class DataFrame {
             iter++;
         }
     }
-//    DataFrame(String inputFile, String[] type, boolean header ) {
-//        try {
-//            // Open the file
-//            FileInputStream fstream = new FileInputStream(inputFile);
-//            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-//            String strLine;
-//
-//            //Read File Line By Line
-//            String[] colName;
-//            if ((strLine = br.readLine()) != null) {
-//                if (header) {
-//                    colName = strLine.split(",");
-//                } else {
-//                    colName = new String[type.length];
-//                    Arrays.fill(colName, "default");
-//                }
-//                tab = new ArrayList<Column>();
-//                size = 0;
-//                int iter = 0;
-//                for (String str : colName) {
-//                    tab.add(new Column(str, type[iter]));
-//                    iter++;
-//                }
-//                if (!header) {
-//                    String[] row = strLine.split(",");
-//                    int itr = 0;
-//                    for (String s : row) {
-//                        switch((String) tab.get(itr).type) {
-//                            case "int":
-//                            case "Int":
-//                            case "integer":
-//                            case "Integer":
-//                                tab.get(itr).data.add(Integer.parseInt(s));
-//                                break;
-//                            case "String":
-//                            case "string":
-//                                tab.get(itr).data.add(s);
-//                                break;
-//                            case "double":
-//                            case "Double":
-//                                tab.get(itr).data.add(Double.parseDouble(s));
-//                                break;
-//                            default:
-//                                System.out.println("Unknown type while parsing! :(");
-//                                break;
-//                        }
-//                        itr++;
-//                    }
-//                }
-//            }
-//
-//            while ((strLine = br.readLine()) != null) {
-//                String[] row = strLine.split(",");
-//                int itr = 0;
-//                for (String s : row) {
-//                    switch((String) tab.get(itr).type) {
-//                        case "int":
-//                        case "Int":
-//                        case "integer":
-//                        case "Integer":
-//                            tab.get(itr).data.add(Integer.parseInt(s));
-//                            break;
-//                        case "String":
-//                        case "string":
-//                            tab.get(itr).data.add(s);
-//                            break;
-//                        case "double":
-//                        case "Double":
-//                            tab.get(itr).data.add(Double.parseDouble(s));
-//                            break;
-//                        default:
-//                            System.out.println("Unknown type while parsing! :(");
-//                            break;
-//                    }
-//                    itr++;
-//                }
-//            }
-//            br.close();
-//        }
-//        catch(Exception e){
-//            System.out.println("something went wrong while reading the file!\n"+e.toString());
-//            System.exit(71830);
-//
-//        }
-//    }
+
+    //Konstruktory z header jako String- jeśli jest podany to oznacza że nie ma nagłówka,
+    // jeśli go nie ma, ocznacza to że csv posiada nagłówek w pierwszym wierszu.
+    DataFrame(String inputFile, Class<? extends Value>[] type, String[] headerName ) {
+        try {
+            // Open the file
+            FileInputStream fstream = new FileInputStream(inputFile);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            String strLine;
+
+            tab = new ArrayList<Column>();
+            size= 0;
+            int iter=0;
+            for (String str : headerName) {
+                tab.add(new Column(str, type[iter]));
+                iter++;
+            }
+
+            while ((strLine = br.readLine()) != null) {
+                String[] row = strLine.split(",");
+                int itr = 0;
+                for (String s : row) {
+                    Value v1= tab.get(itr).type.newInstance();
+                    v1.create(s);
+                    tab.get(itr).data.add(v1);
+                    itr++;
+                }
+            }
+            br.close();
+        }
+        catch(Exception e){
+            System.out.println("something went wrong while reading the file!\n"+e.toString());
+            System.exit(71830);
+
+        }
+    }
+    DataFrame(String inputFile, Class <? extends Value>[] type){
+        try {
+            // Open the file
+            FileInputStream fstream = new FileInputStream(inputFile);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            String strLine;
+
+            //Read File Line By Line
+            String[] colName;
+            if ((strLine = br.readLine()) != null) {
+                colName = strLine.split(",");
+                tab = new ArrayList<Column>();
+                size = 0;
+                int iter = 0;
+                for (String str : colName) {
+                    tab.add(new Column(str, type[iter]));
+                    iter++;
+                }
+            }
+
+            while ((strLine = br.readLine()) != null) {
+                String[] row = strLine.split(",");
+                int itr = 0;
+                for (String s : row) {
+                    Value v1= tab.get(itr).type.newInstance();
+                    v1.create(s);
+                    tab.get(itr).data.add(v1);
+                    itr++;
+                }
+            }
+            br.close();
+        }
+        catch(Exception e){
+            System.out.println("something went wrong while reading the file!\n"+e.toString());
+            System.exit(71830);
+
+        }
+    }
+
+    //Konstruktor z headerem jako boolean, gdy boolean false kolumny przyjmują nazwe "default".
+    DataFrame(String inputFile, Class<? extends Value>[] type, boolean header ) {
+        try {
+            // Open the file
+            FileInputStream fstream = new FileInputStream(inputFile);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            String strLine;
+
+            //Read File Line By Line
+            String[] colName;
+            if ((strLine = br.readLine()) != null) {
+                if (header) {
+                    colName = strLine.split(",");
+                } else {
+                    colName = new String[type.length];
+                    Arrays.fill(colName, "default");
+                }
+                tab = new ArrayList<Column>();
+                size = 0;
+                int iter = 0;
+                for (String str : colName) {
+                    tab.add(new Column(str, type[iter]));
+                    iter++;
+                }
+                if (!header) {
+                    String[] row = strLine.split(",");
+                    int itr = 0;
+                    for (String s : row) {
+                        Value v1= tab.get(itr).type.newInstance();
+                        v1.create(s);
+                        tab.get(itr).data.add(v1);
+                        itr++;
+                    }
+                }
+            }
+
+            while ((strLine = br.readLine()) != null) {
+                String[] row = strLine.split(",");
+                int itr = 0;
+                for (String s : row) {
+                    Value v1= tab.get(itr).type.newInstance();
+                    v1.create(s);
+                    tab.get(itr).data.add(v1);
+                    itr++;
+                }
+            }
+            br.close();
+        }
+        catch(Exception e){
+            System.out.println("something went wrong while reading the file!\n"+e.toString());
+            System.exit(71830);
+
+        }
+    }
 
     public int size(){
         if(!tab.isEmpty()){

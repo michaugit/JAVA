@@ -41,7 +41,7 @@ public class Main {
 //        sdf.add("tel", 0);
 //        sdf.add("imie", "Micha");
 //        sdf.add("imie", "Michał");
-//
+ //
 //        sdf.print();
 //
 //        DataFrame df = sdf.toDense();
@@ -49,6 +49,8 @@ public class Main {
 
         DataFrame dfFile= new DataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new String[] {"double","double","double"}, true);
         SparseDataFrame sdfFile= new SparseDataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new String[] {"double","double","double"}, 0.0 , true);
+
+
         sdfFile.print();
         dfFile.print();
         DataFrame dfFromSdf=sdfFile.toDense();
