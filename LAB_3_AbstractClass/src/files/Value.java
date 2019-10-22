@@ -1,5 +1,7 @@
 package files;
 
+import java.text.ParseException;
+
 public abstract class Value {
     public abstract String toString();
     public abstract Value add(Value x);
@@ -13,5 +15,5 @@ public abstract class Value {
     public abstract boolean neq(Value x);
     public abstract boolean equals(Object other);
     public abstract int hashCode();
-    public abstract Value create(String s);
+    public abstract Value create(String s) throws ParseException;
 }

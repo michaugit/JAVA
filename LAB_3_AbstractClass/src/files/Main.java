@@ -1,9 +1,15 @@
 package files;
 
 
+import sun.util.calendar.BaseCalendar;
+
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
 //        IntegerObject i1= new IntegerObject();
 //        IntegerObject i2= new IntegerObject();
 //        i1.create("10");
@@ -39,18 +45,32 @@ public class Main {
 //        s1.create("Stoo lat ");
 //        s1.add(dob);
 //        iob.add(dob);
-
-
-        DataFrame dfFile= new DataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new Class[]{DoubleObject.class,DoubleObject.class,DoubleObject.class});
-        DoubleObject hide = new DoubleObject();
-        hide.create("0.0");
-        SparseDataFrame sdfFile= new SparseDataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new Class[]{DoubleObject.class,DoubleObject.class,DoubleObject.class}, hide);
-
-
-        sdfFile.print();
-        dfFile.print();
-        DataFrame dfFromSdf=sdfFile.toDense();
-        dfFromSdf.print();
+//
+//
+//        DataFrame dfFile= new DataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new Class[]{DoubleObject.class,DoubleObject.class,DoubleObject.class});
+//        DoubleObject hide = new DoubleObject();
+//        hide.create("0.0");
+//        SparseDataFrame sdfFile= new SparseDataFrame("E:\\Java\\GIT\\LAB_2_SparseDataFrame\\sparse.csv", new Class[]{DoubleObject.class,DoubleObject.class,DoubleObject.class}, hide);
+//
+//
+//        sdfFile.print();
+//        dfFile.print();
+//        DataFrame dfFromSdf=sdfFile.toDense();
+//        dfFromSdf.print();
+//
+//        DateObject d1=new DateObject();
+//        d1.create("29-09-2019");
+//        DateObject d2=new DateObject();
+//        d2.create("29-09-2019");
+//
+//        System.out.println(d1.toString()+"\n Equal: "+ d1.eq(d2));
+//        IntegerObject in= new IntegerObject();
+//        in.create("23");
+//        d1.add(in);
+//        System.out.println(d1.toString()+"\n Greater: "+ d1.gte(d2));
+//        d1.sub(in);
+//        d1.sub(in);
+//        System.out.println(d1.toString()+"\n Less: "+ d1.lte(d2));
 
 
 
