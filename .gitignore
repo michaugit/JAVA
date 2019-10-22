@@ -3,3 +3,6 @@
 *.html
 LAB_3_AbstractClass/LAB_3_AbstractClass.iml
 LAB_3_AbstractClass/out/production/LAB_3_AbstractClass/META-INF/LAB_3_AbstractClass.kotlin_module
+LAB_4_GroupBy/out/production/LAB_3_AbstractClass/META-INF/LAB_3_AbstractClass.kotlin_module
+LAB_4_GroupBy/.idea/.gitignore
+LAB_4_GroupBy/LAB_4_GroupBy.iml
