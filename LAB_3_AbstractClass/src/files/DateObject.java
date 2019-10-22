@@ -7,15 +7,15 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
 public class DateObject extends Value {
     Date value;
+
     @Override
     public String toString() {
-        DateFormat dateFormat= new SimpleDateFormat("dd-MM-yyyy");
+        DateFormat dateFormat= new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(value);
     }
 
@@ -106,7 +106,7 @@ public class DateObject extends Value {
 
     @Override
     public Value create(String s) throws ParseException {
-            value= new SimpleDateFormat("dd-MM-yyyy").parse(s);
+            value= new SimpleDateFormat("yyyy-MM-dd").parse(s);
         return this;
     }
 }

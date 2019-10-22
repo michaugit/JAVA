@@ -58,19 +58,19 @@ public class Main {
 //        DataFrame dfFromSdf=sdfFile.toDense();
 //        dfFromSdf.print();
 //
-//        DateObject d1=new DateObject();
-//        d1.create("29-09-2019");
-//        DateObject d2=new DateObject();
-//        d2.create("29-09-2019");
-//
-//        System.out.println(d1.toString()+"\n Equal: "+ d1.eq(d2));
-//        IntegerObject in= new IntegerObject();
-//        in.create("23");
-//        d1.add(in);
-//        System.out.println(d1.toString()+"\n Greater: "+ d1.gte(d2));
-//        d1.sub(in);
-//        d1.sub(in);
-//        System.out.println(d1.toString()+"\n Less: "+ d1.lte(d2));
+        DateObject d1=new DateObject();
+        d1.create("2019-09-29");
+        DateObject d2=new DateObject();
+        d2.create("2019-09-29");
+
+        System.out.println(d1.toString()+"\n Equal: "+ d1.eq(d2));
+        IntegerObject in= new IntegerObject();
+        in.create("23");
+        d1.add(in);
+        System.out.println(d1.toString()+"\n Greater: "+ d1.gte(d2));
+        d1.sub(in);
+        d1.sub(in);
+        System.out.println(d1.toString()+"\n Less: "+ d1.lte(d2));
 
 
 
