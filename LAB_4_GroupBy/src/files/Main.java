@@ -58,21 +58,38 @@ public class Main {
 //        DataFrame dfFromSdf=sdfFile.toDense();
 //        dfFromSdf.print();
 //
-        DateObject d1=new DateObject();
-        d1.create("2019-09-29");
-        DateObject d2=d1.clone();
+//        DataFrame d1= new DataFrame(new String[]{"inter","outer"}, new Class[]{IntegerObject.class,IntegerObject.class});
+//        DataFrame d2= new DataFrame(new String[]{"inter","outer"}, new Class[]{IntegerObject.class,IntegerObject.class});
+//        IntegerObject i1= new IntegerObject();
+//        IntegerObject i2= new IntegerObject();
+//        IntegerObject i3= new IntegerObject();
+//        IntegerObject i4= new IntegerObject();
+//        i1.create("1");
+//        i2.create("2");
+//        i3.create("3");
+//        i4.create("4");
+//
+//        d1.get("inter").data.add(i1);
+//        d1.get("inter").data.add(i2);
+//
+//        d2.get("inter").data.add(i3);
+//        d2.get("inter").data.add(i4);
+//
+//        d2.get("outer").data.add(i1);
+//        d2.get("outer").data.add(i2);
+//
+//        d1.get("outer").data.add(i3);
+//        d1.get("outer").data.add(i4);
+//
+//        d1.print();
+//        d2.print();
+//
+//        d1.addAnotherDF(d2);
+//        d1.print();
 
-        System.out.println(d1.toString()+"\n Equal: "+ d1.eq(d2));
-        System.out.println(d1.toString()+"\n Reference: "+ (d1==d2));
-        IntegerObject in= new IntegerObject();
-        in.create("23");
-        d1.add(in);
-        System.out.println(d1.toString()+"\n Greater: "+ d1.gte(d2));
-        d1.sub(in);
-        d1.sub(in);
-        System.out.println(d1.toString()+"\n Less: "+ d1.lte(d2));
-
-
-
+        DataFrame d1= new DataFrame("E:\\Java\\GIT\\LAB_4_GroupBy\\groupby.csv\\groupWithMe.csv", new Class[]{StringObject.class,DateObject.class,DoubleObject.class,DoubleObject.class});
+        GroupDataFrame g1=d1.groupBy("id");
+        g1.data.get(10).print();
+        System.out.println("\nNumber of ID: "+ g1.data.size());
     }
 }

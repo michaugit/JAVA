@@ -1,9 +1,9 @@
 package files;
 
-import java.io.*;
-import java.util.ArrayList;
+import jdk.nashorn.internal.runtime.arrays.ArrayLikeIterator;
 
-import java.util.Arrays;
+import java.io.*;
+import java.util.*;
 
 
 public class DataFrame {
@@ -170,7 +170,7 @@ public class DataFrame {
                 return cln;
             }
         }
-        return null;
+        throw new RuntimeException("Column not found");
     }
 
     public DataFrame get(String [] cols, boolean deepcopy){
@@ -215,6 +215,48 @@ public class DataFrame {
         return back;
     }
 
+    public DataFrame addAnotherDF(DataFrame fromDF){
+        this.adjustSizeOfColumns();
+
+        if(this.tab.size() != fromDF.tab.size()) {
+            throw new RuntimeException("Number of columns is not equal!");
+        }
+        for (Column cln: fromDF.tab) {
+            this.get(cln.name).data.addAll(cln.data);
+        }
+        return this;
+    }
+
+    public GroupDataFrame groupBy(String key){
+    Map<String , DataFrame> groupMap= new TreeMap<>();
+        for( int i=0; i<this.size(); i++){
+            DataFrame row=this.iloc(i);
+            //sprawdzamy czy szukane ID w mapie istnieje, jeśli tak to dodajemy do tego Dataframe odczytany wiersz
+            if( groupMap.containsKey(row.get(key).data.get(0).toString()) ){
+                groupMap.get(row.get(key).data.get(0).toString()).addAnotherDF(row);
+            }
+            //jeżeli nasza kolumna po której grupujemy nie ma żadnego id to wrzucamy je do DataFrame NoID
+            else if(row.get(key).data.get(0) == null){
+                if(groupMap.get("NoID") == null){
+                    groupMap.put("NoID", row);
+                }
+                else{
+                    groupMap.get("NoID").addAnotherDF(row);
+                }
+            }
+            //jesli nie istnieje szukane ID dodajemy nowy element mapy z tym ID i pierwszym DataFrame
+            else if( ! (groupMap.containsKey(row.get(key).data.get(0).toString())) ){
+                groupMap.put(row.get(key).data.get(0).toString(), row);
+            }
+        }//po rozgrupowaniu DataFrame na mniejsze DataFrame'y zapisane w mapie przenieść do GroupDataFrame wpisując je do linkedlist
+        GroupDataFrame ret= new GroupDataFrame();
+        for(Map.Entry<String, DataFrame> dfFromMap : groupMap.entrySet()){
+            ret.data.add(dfFromMap.getValue());
+        }
+        return ret;
+    }
+
+
     protected void adjustSizeOfColumns(){
         int size=this.size();
         for (Column cln : tab ) {
@@ -236,5 +278,5 @@ public class DataFrame {
 
 
     public ArrayList<Column> tab;
-    protected int size;
+    protected  int size;
 }
