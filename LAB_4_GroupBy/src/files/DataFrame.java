@@ -271,6 +271,7 @@ public class DataFrame implements Cloneable {
     }
 
     public void print() {
+        this.adjustSizeOfColumns();
         System.out.println("\n\nPRINTED COLUMN:");
         for (Column cln : this.tab) {
             System.out.print("#" + cln.type.getSimpleName() + "#" + getSpacesToPrint(cln.type.getSimpleName() + "##"));
