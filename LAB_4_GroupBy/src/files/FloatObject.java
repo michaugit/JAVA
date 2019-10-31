@@ -4,8 +4,9 @@ public class FloatObject extends Value {
 
     Float value;
 
-    public FloatObject clone() throws CloneNotSupportedException {
-        FloatObject copy = (FloatObject) super.clone();
+    public FloatObject clone(){
+        FloatObject copy = new FloatObject();
+        copy.value= this.value;
         return copy;
     }
 

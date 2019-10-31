@@ -5,8 +5,9 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class StringObject extends Value {
     String value;
 
-    public StringObject clone() throws CloneNotSupportedException {
-        StringObject copy = (StringObject) super.clone();
+    public StringObject clone() {
+        StringObject copy =  new StringObject();
+        copy.value= this.value;
         return copy;
     }
 

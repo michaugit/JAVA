@@ -3,6 +3,7 @@ package files;
 import java.text.ParseException;
 
 public abstract class Value implements Cloneable{
+    public abstract Value clone();
     public abstract String toString();
     public abstract Value add(Value x);
     public abstract Value sub(Value x);

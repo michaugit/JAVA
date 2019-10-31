@@ -3,16 +3,21 @@ package files;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class COOValue extends Value {
+    Integer index;
+    Value value;
+
+    private COOValue() {
+    }
+
     COOValue(int index, Value value) {
         this.index = index;
         this.value = value;
     }
 
-    int index;
-    Value value;
-
-    public COOValue clone() throws CloneNotSupportedException {
-        COOValue copy = (COOValue) super.clone();
+    public COOValue clone() {
+        COOValue copy = new COOValue();
+        copy.value = this.value.clone();
+        copy.index = this.index;
         return copy;
     }
 

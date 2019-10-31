@@ -3,8 +3,9 @@ package files;
 public class IntegerObject extends Value {
     Integer value;
 
-    public IntegerObject clone() throws CloneNotSupportedException {
-        IntegerObject copy = (IntegerObject) super.clone();
+    public IntegerObject clone(){
+        IntegerObject copy = new IntegerObject();
+        copy.value=this.value;
         return copy;
     }
 

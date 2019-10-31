@@ -187,16 +187,105 @@ public class GroupDataFrame implements GroupBy {
 
     @Override
     public DataFrame sum() {
-        return null;
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value sum = colDF.type.newInstance();
+                    try {
+                        if (colDF.type.equals(StringObject.class) || colDF.type.equals(DateObject.class)) {
+                            sum = colDF.data.get(0); //jesli srednia ze stringa zwraca pierwszą wartość
+                            for (Value obj : colDF.data) {
+                                if (!obj.eq(sum)) {
+                                    throw new ThisIsNoIDException();
+                                }
+                            }
+                        } else {
+                            sum.create("0");
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                sum.add(obj);
+                            }
+                        }
+
+                        Value deepCopy = colDF.type.newInstance();
+                        deepCopy.create(sum.toString());
+                        Column cln = new Column(colDF.name, colDF.type);
+                        cln.data.add(deepCopy);
+                        retGroup.tab.add(cln);
+                    } catch (ThisIsNoIDException e) {/*nie tworzy kolumny*/}
+                }
+                ret.addAnotherDF(retGroup);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return ret;
     }
 
     @Override
     public DataFrame var() {
-        return null;
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value mean = colDF.type.newInstance();
+                    Value var = colDF.type.newInstance();
+                    try {
+                        if (colDF.type.equals(StringObject.class) || colDF.type.equals(DateObject.class)) {
+                            var = colDF.data.get(0); //jesli srednia ze stringa zwraca pierwszą wartość
+                            for (Value obj : colDF.data) {
+                                if (!obj.eq(var)) {
+                                    throw new ThisIsNoIDException();
+                                }
+                            }
+                        } else {
+                            mean.create("0");
+                            var.create("0");
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                mean.add(obj);
+                            }
+                            IntegerObject size = new IntegerObject();
+                            size.create(((Integer) colDF.data.size()).toString());
+                            mean.div(size);
+
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                Value x= colDF.type.newInstance();
+                                x.create("0");
+                                x.add(obj);
+                                x.sub(mean);
+                                IntegerObject powerTwo= new IntegerObject();
+                                powerTwo.create("2");
+                                x.pow(powerTwo);
+                                var.add(x);
+                            }
+                            IntegerObject n = new IntegerObject();
+                            n.create(((Integer) colDF.data.size()).toString());
+                            var.div(n);
+                        }
+
+                        Value deepCopy = colDF.type.newInstance();
+                        deepCopy.create(var.toString());
+                        Column cln = new Column(colDF.name, colDF.type);
+                        cln.data.add(deepCopy);
+                        retGroup.tab.add(cln);
+                    } catch (ThisIsNoIDException e) {/*nie tworzy kolumny*/}
+                }
+                ret.addAnotherDF(retGroup);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return ret;
     }
 
     @Override
-    public DataFrame apply(Applyable fun) {
-        return null;
+    public DataFrame apply(Applyable fun){
+        DataFrame ret= new DataFrame();
+        for(DataFrame df : this.data){
+            ret.addAnotherDF(fun.apply(df));
+        }
+        return ret;
     }
 }

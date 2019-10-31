@@ -4,8 +4,9 @@ public class DoubleObject extends Value {
 
     Double value;
 
-    public DoubleObject clone() throws CloneNotSupportedException {
-        DoubleObject copy = (DoubleObject) super.clone();
+    public DoubleObject clone(){
+        DoubleObject copy = new DoubleObject();
+        copy.value= this.value;
         return copy;
     }
 

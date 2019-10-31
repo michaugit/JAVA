@@ -13,8 +13,10 @@ import java.util.Date;
 public class DateObject extends Value {
     Date value;
 
-    public DateObject clone() throws CloneNotSupportedException {
-        DateObject copy = (DateObject) super.clone();
+    @Override
+    public DateObject clone() {
+        DateObject copy = new DateObject();
+        copy.value= (Date) this.value.clone();
         return copy;
     }
 

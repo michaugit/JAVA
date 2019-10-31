@@ -8,6 +8,6 @@ public interface GroupBy {
     DataFrame mean();
     DataFrame std(); //odchylenie standardowe
     DataFrame sum();
-    DataFrame var();
+    DataFrame var(); //wariancja
     DataFrame apply(Applyable fun);
 }

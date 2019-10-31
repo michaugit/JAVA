@@ -11,9 +11,26 @@ public class Main {
 
     public static void main(String[] args) throws ParseException, CloneNotSupportedException, InstantiationException, IllegalAccessException {
 //        IntegerObject i1= new IntegerObject();
-//        IntegerObject i2= new IntegerObject();
 //        i1.create("10");
+//        IntegerObject i2= new IntegerObject();
 //        i2.create("2");
+//
+//        DataFrame d1= new DataFrame(new String[]{"col1", "col2"}, new Class[]{IntegerObject.class, IntegerObject.class});
+//        d1.tab.get(0).data.add(i1);
+//        d1.tab.get(1).data.add(i2);
+//        d1.print();
+//
+//
+//        DataFrame d2= d1.get(new String[]{"col1", "col2"}, true);
+//
+//        d2.tab.get(0).data.get(0).add(i1);
+//        d2.tab.get(1).data.get(0).add(i1);
+//
+//
+//
+//        d2.print();
+//        d1.print();
+
 //        System.out.println("i1: " + i1.toString());
 //
 //        i1.add(i2);
@@ -91,8 +108,7 @@ public class Main {
         GroupDataFrame g1=d1.groupBy("id");
 //        g1.max().print();
 //        g1.min().print();
-        g1.std().print();
-        //g1.data.get(10).print();
-        System.out.println("\nNumber of ID: "+ g1.data.size());
+//        g1.sum().print();
+        g1.apply(new Mediana()).print();
     }
 }
