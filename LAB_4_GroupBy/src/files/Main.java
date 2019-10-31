@@ -89,7 +89,9 @@ public class Main {
 
         DataFrame d1= new DataFrame("E:\\Java\\GIT\\LAB_4_GroupBy\\groupby.csv\\groupWithMe.csv", new Class[]{StringObject.class,DateObject.class,DoubleObject.class,DoubleObject.class});
         GroupDataFrame g1=d1.groupBy("id");
-        g1.mean().print();
+//        g1.max().print();
+//        g1.min().print();
+        g1.std().print();
         //g1.data.get(10).print();
         System.out.println("\nNumber of ID: "+ g1.data.size());
     }

@@ -9,113 +9,180 @@ import java.util.LinkedList;
 public class GroupDataFrame implements GroupBy {
     LinkedList<DataFrame> data;
 
-    GroupDataFrame(){
-        data= new LinkedList<DataFrame>();
+    GroupDataFrame() {
+        data = new LinkedList<DataFrame>();
     }
 
-    public void print(String idItWasGroupedBy){
-        for(DataFrame df : data){
+    public void print(String idItWasGroupedBy) {
+        for (DataFrame df : data) {
             System.out.println(df.get(idItWasGroupedBy).data.get(0).toString());
         }
     }
 
     @Override
-    public DataFrame max() throws IllegalAccessException, InstantiationException, ParseException {
-        DataFrame ret= new DataFrame();
-        for(DataFrame df : data){ //przechodzenie po każdej grupie
-            DataFrame retGroup= new DataFrame();
-            for( Column colDF : df.tab){ //przechodzenie po każdej kolumnie
-                Value max;
-                max=(colDF.data.get(0));
-                for(Value obj: colDF.data){//przechodzenie po danych  w kolumnie
-                    if(max.lte(obj)){
-                        max=obj;
-                    }
-                }
-                Value deepCopy=  colDF.type.newInstance();
-                deepCopy.create(max.toString());
-                Column cln= new Column(colDF.name, colDF.type);
-                cln.data.add(deepCopy);
-                retGroup.tab.add(cln);
-            }
-            ret.addAnotherDF(retGroup);
-        }
-        return ret;
-    }
-
-    @Override
-    public DataFrame min() throws IllegalAccessException, InstantiationException, ParseException {
-        DataFrame ret= new DataFrame();
-        for(DataFrame df : data){ //przechodzenie po każdej grupie
-            DataFrame retGroup= new DataFrame();
-            for( Column colDF : df.tab){ //przechodzenie po każdej kolumnie
-                Value max;
-                max=(colDF.data.get(0));
-                for(Value obj: colDF.data){//przechodzenie po danych  w kolumnie
-                    if(max.gte(obj)){
-                        max=obj;
-                    }
-                }
-                Value deepCopy=  colDF.type.newInstance();
-                deepCopy.create(max.toString());
-                Column cln= new Column(colDF.name, colDF.type);
-                cln.data.add(deepCopy);
-                retGroup.tab.add(cln);
-            }
-            ret.addAnotherDF(retGroup);
-        }
-        return ret;
-    }
-
-    @Override
-    public DataFrame mean() throws IllegalAccessException, InstantiationException, ParseException{
-        DataFrame ret= new DataFrame();
-        for(DataFrame df : data){ //przechodzenie po każdej grupie
-            DataFrame retGroup= new DataFrame();
-            for( Column colDF : df.tab) { //przechodzenie po każdej kolumnie
-                Value val = colDF.type.newInstance();
-                try {
-                    if (colDF.type.equals(StringObject.class)) {
-                        val = colDF.data.get(0); //jesli srednia ze stringa zwraca pierwszą wartość
-                        for (Value obj : colDF.data) {
-                            if (!obj.eq(val)) {
-                                throw new ThisIsNoIDException();
-                            }
+    public DataFrame max() {
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value max;
+                    max = (colDF.data.get(0));
+                    for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                        if (max.lte(obj)) {
+                            max = obj;
                         }
-                    } else if (colDF.type.equals(DateObject.class)) {
-                        long totalSeconds = 0L;
-                        for (Value obj : colDF.data) {
-                            totalSeconds += ((DateObject) obj).value.getTime() / 1000L;
-                        }
-                        long averageSeconds = totalSeconds / colDF.data.size();
-                        Date averageDate = new Date(averageSeconds * 1000L);
-                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        val.create(dateFormat.format(averageDate));
-                    } else {
-                        val.create("0");
-                        for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
-                            val.add(obj);
-                        }
-                        IntegerObject size = new IntegerObject();
-                        size.create(((Integer) colDF.data.size()).toString());
-                        val.div(size);
                     }
-
                     Value deepCopy = colDF.type.newInstance();
-                    deepCopy.create(val.toString());
+                    deepCopy.create(max.toString());
                     Column cln = new Column(colDF.name, colDF.type);
                     cln.data.add(deepCopy);
                     retGroup.tab.add(cln);
-                } catch (ThisIsNoIDException e) {/*nie tworzy kolumny*/}
+                }
+                ret.addAnotherDF(retGroup);
             }
-            ret.addAnotherDF(retGroup);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return ret;
+    }
+
+    @Override
+    public DataFrame min() {
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value min;
+                    min = (colDF.data.get(0));
+                    for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                        if (min.gte(obj)) {
+                            min = obj;
+                        }
+                    }
+                    Value deepCopy = colDF.type.newInstance();
+                    deepCopy.create(min.toString());
+                    Column cln = new Column(colDF.name, colDF.type);
+                    cln.data.add(deepCopy);
+                    retGroup.tab.add(cln);
+                }
+                ret.addAnotherDF(retGroup);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return ret;
+    }
+
+    @Override
+    public DataFrame mean() {
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value sum = colDF.type.newInstance();
+                    try {
+                        if (colDF.type.equals(StringObject.class)) {
+                            sum = colDF.data.get(0); //jesli srednia ze stringa zwraca pierwszą wartość
+                            for (Value obj : colDF.data) {
+                                if (!obj.eq(sum)) {
+                                    throw new ThisIsNoIDException();
+                                }
+                            }
+                        } else if (colDF.type.equals(DateObject.class)) {
+                            long totalSeconds = 0L;
+                            for (Value obj : colDF.data) {
+                                totalSeconds += ((DateObject) obj).value.getTime() / 1000L;
+                            }
+                            long averageSeconds = totalSeconds / colDF.data.size();
+                            Date averageDate = new Date(averageSeconds * 1000L);
+                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                            sum.create(dateFormat.format(averageDate));
+                        } else {
+                            sum.create("0");
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                sum.add(obj);
+                            }
+                            IntegerObject size = new IntegerObject();
+                            size.create(((Integer) colDF.data.size()).toString());
+                            sum.div(size);
+                        }
+
+                        Value deepCopy = colDF.type.newInstance();
+                        deepCopy.create(sum.toString());
+                        Column cln = new Column(colDF.name, colDF.type);
+                        cln.data.add(deepCopy);
+                        retGroup.tab.add(cln);
+                    } catch (ThisIsNoIDException e) {/*nie tworzy kolumny*/}
+                }
+                ret.addAnotherDF(retGroup);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
         return ret;
     }
 
     @Override
     public DataFrame std() {
-        return null;
+        DataFrame ret = new DataFrame();
+        try {
+            for (DataFrame df : data) { //przechodzenie po każdej grupie
+                DataFrame retGroup = new DataFrame();
+                for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
+                    Value mean = colDF.type.newInstance();
+                    Value std = colDF.type.newInstance();
+                    try {
+                        if (colDF.type.equals(StringObject.class) || colDF.type.equals(DateObject.class)) {
+                            std = colDF.data.get(0); //jesli srednia ze stringa zwraca pierwszą wartość
+                            for (Value obj : colDF.data) {
+                                if (!obj.eq(std)) {
+                                    throw new ThisIsNoIDException();
+                                }
+                            }
+                        } else {
+                            mean.create("0");
+                            std.create("0");
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                mean.add(obj);
+                            }
+                            IntegerObject size = new IntegerObject();
+                            size.create(((Integer) colDF.data.size()).toString());
+                            mean.div(size);
+
+                            for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
+                                Value x= colDF.type.newInstance();
+                                x.create("0");
+                                x.add(obj);
+                                x.sub(mean);
+                                IntegerObject powerTwo= new IntegerObject();
+                                powerTwo.create("2");
+                                x.pow(powerTwo);
+                                std.add(x);
+                            }
+                            IntegerObject n = new IntegerObject();
+                            n.create(((Integer) colDF.data.size()).toString());
+                            std.div(n);
+                            DoubleObject sqrtPower= new DoubleObject();
+                            sqrtPower.create("0.5");
+                            std.pow(sqrtPower);
+                        }
+
+                        Value deepCopy = colDF.type.newInstance();
+                        deepCopy.create(std.toString());
+                        Column cln = new Column(colDF.name, colDF.type);
+                        cln.data.add(deepCopy);
+                        retGroup.tab.add(cln);
+                    } catch (ThisIsNoIDException e) {/*nie tworzy kolumny*/}
+                }
+                ret.addAnotherDF(retGroup);
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+        return ret;
     }
 
     @Override
