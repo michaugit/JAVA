@@ -9,7 +9,7 @@ import java.util.Date;
 
 public class Main {
 
-    public static void main(String[] args) throws ParseException, CloneNotSupportedException {
+    public static void main(String[] args) throws ParseException, CloneNotSupportedException, InstantiationException, IllegalAccessException {
 //        IntegerObject i1= new IntegerObject();
 //        IntegerObject i2= new IntegerObject();
 //        i1.create("10");
@@ -89,7 +89,8 @@ public class Main {
 
         DataFrame d1= new DataFrame("E:\\Java\\GIT\\LAB_4_GroupBy\\groupby.csv\\groupWithMe.csv", new Class[]{StringObject.class,DateObject.class,DoubleObject.class,DoubleObject.class});
         GroupDataFrame g1=d1.groupBy("id");
-        g1.data.get(10).print();
+        g1.mean().print();
+        //g1.data.get(10).print();
         System.out.println("\nNumber of ID: "+ g1.data.size());
     }
 }

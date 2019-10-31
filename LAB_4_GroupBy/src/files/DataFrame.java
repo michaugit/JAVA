@@ -217,9 +217,13 @@ public class DataFrame {
 
     public DataFrame addAnotherDF(DataFrame fromDF){
         this.adjustSizeOfColumns();
-
-        if(this.tab.size() != fromDF.tab.size()) {
+        if(this.tab.size() != fromDF.tab.size() && !this.tab.isEmpty()) {
             throw new RuntimeException("Number of columns is not equal!");
+        }
+        if(this.tab.isEmpty()){
+            for(Column clnFromDF : fromDF.tab){
+                this.tab.add(new Column(clnFromDF.name,clnFromDF.type));
+            }
         }
         for (Column cln: fromDF.tab) {
             this.get(cln.name).data.addAll(cln.data);
@@ -248,7 +252,7 @@ public class DataFrame {
             else if( ! (groupMap.containsKey(row.get(key).data.get(0).toString())) ){
                 groupMap.put(row.get(key).data.get(0).toString(), row);
             }
-        }//po rozgrupowaniu DataFrame na mniejsze DataFrame'y zapisane w mapie przenieść do GroupDataFrame wpisując je do linkedlist
+        }//po rozgrupowaniu DataFrame na mniejsze DataFrame'y zapisane w mapie przeniesienie do GroupDataFrame wpisując je do linkedlist
         GroupDataFrame ret= new GroupDataFrame();
         for(Map.Entry<String, DataFrame> dfFromMap : groupMap.entrySet()){
             ret.data.add(dfFromMap.getValue());
@@ -268,13 +272,30 @@ public class DataFrame {
     }
     public void print(){
         System.out.println("\n\nPRINTED COLUMN:");
-        for( Column cln : this.tab){
-            System.out.println("Name of column: " + cln.name +
-                    "\t\tType of column: " + cln.type +
-                    "\t\tDane: " + cln.data.toString());
+        for( Column cln : this.tab) {
+            System.out.print("#"+cln.type.getSimpleName()+"#" + getSpacesToPrint(cln.type.getSimpleName()+"##"));
         }
-        System.out.println("Number of rows: " + this.size());
+        System.out.println();
+        for( Column cln : this.tab) {
+            System.out.print(cln.name+":" + getSpacesToPrint(cln.name+":"));
+        }
+        for(int i=0; i<this.size(); ++i){
+            System.out.println();
+            for(Column cln : this.tab){
+                System.out.print(cln.data.get(i).toString()+ getSpacesToPrint(cln.data.get(i).toString()));
+            }
+
+        }
+        System.out.println("\nNumber of rows: " + this.size());
     }
+     private String getSpacesToPrint(String from){
+        Integer i=25;
+        String str= new String("                         "); //25 spacji
+         if(from.length()>25){
+             throw new RuntimeException("String to print is too long!");
+         }
+        return str.substring(0,i-from.length());
+     }
 
 
     public ArrayList<Column> tab;
