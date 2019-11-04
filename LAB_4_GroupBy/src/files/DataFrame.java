@@ -231,31 +231,43 @@ public class DataFrame implements Cloneable {
         return this;
     }
 
-    public GroupDataFrame groupBy(String key) {
-        Map<String, DataFrame> groupMap = new TreeMap<>();
-        for (int i = 0; i < this.size(); i++) {
-            DataFrame row = this.iloc(i);
-            //sprawdzamy czy szukane ID w mapie istnieje, jeśli tak to dodajemy do tego Dataframe odczytany wiersz
-            if (groupMap.containsKey(row.get(key).data.get(0).toString())) {
-                groupMap.get(row.get(key).data.get(0).toString()).addAnotherDF(row);
-            }
-            //jeżeli nasza kolumna po której grupujemy nie ma żadnego id to wrzucamy je do DataFrame NoID
-            else if (row.get(key).data.get(0) == null) {
-                if (groupMap.get("NoID") == null) {
-                    groupMap.put("NoID", row);
-                } else {
-                    groupMap.get("NoID").addAnotherDF(row);
+    public GroupDataFrame groupBy(String[] keys) {
+        LinkedList<DataFrame> grouped = new LinkedList<DataFrame>();
+        LinkedList<DataFrame> groupedCopy = new LinkedList<DataFrame>();
+        grouped.add(this);
+        for(String key : keys) {
+            groupedCopy= (LinkedList<DataFrame>) grouped.clone();
+            grouped.clear();
+            for(DataFrame df : groupedCopy) {
+                Map<String, DataFrame> groupMap = new TreeMap<>();
+                for (int i = 0; i < df.size(); i++) {
+                    DataFrame row = df.iloc(i);
+                    //sprawdzamy czy szukane ID w mapie istnieje, jeśli tak to dodajemy do tego Dataframe odczytany wiersz
+                    if (groupMap.containsKey(row.get(key).data.get(0).toString())) {
+                        groupMap.get(row.get(key).data.get(0).toString()).addAnotherDF(row);
+                    }
+                    //jeżeli nasza kolumna po której grupujemy nie ma żadnego id to wrzucamy je do DataFrame NoID
+                    else if (row.get(key).data.get(0) == null) {
+                        if (groupMap.get("NoID") == null) {
+                            groupMap.put("NoID", row);
+                        } else {
+                            groupMap.get("NoID").addAnotherDF(row);
+                        }
+                    }
+                    //jesli nie istnieje szukane ID dodajemy nowy element mapy z tym ID i pierwszym DataFrame
+                    else if (!(groupMap.containsKey(row.get(key).data.get(0).toString()))) {
+                        groupMap.put(row.get(key).data.get(0).toString(), row);
+                    }
+                }
+                //po rozgrupowaniu DataFrame na mniejsze DataFrame'y zapisane w mapie przeniesienie do GroupDataFrame wpisując je do linkedlist
+                for (Map.Entry<String, DataFrame> dfFromMap : groupMap.entrySet()) {
+                    grouped.add(dfFromMap.getValue());
                 }
             }
-            //jesli nie istnieje szukane ID dodajemy nowy element mapy z tym ID i pierwszym DataFrame
-            else if (!(groupMap.containsKey(row.get(key).data.get(0).toString()))) {
-                groupMap.put(row.get(key).data.get(0).toString(), row);
-            }
-        }//po rozgrupowaniu DataFrame na mniejsze DataFrame'y zapisane w mapie przeniesienie do GroupDataFrame wpisując je do linkedlist
-        GroupDataFrame ret = new GroupDataFrame();
-        for (Map.Entry<String, DataFrame> dfFromMap : groupMap.entrySet()) {
-            ret.data.add(dfFromMap.getValue());
+
         }
+        GroupDataFrame ret = new GroupDataFrame();
+        ret.data=grouped;
         return ret;
     }
 

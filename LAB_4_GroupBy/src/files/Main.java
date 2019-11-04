@@ -105,10 +105,11 @@ public class Main {
 //        d1.print();
 
         DataFrame d1= new DataFrame("E:\\Java\\GIT\\LAB_4_GroupBy\\groupby.csv\\groupWithMe.csv", new Class[]{StringObject.class,DateObject.class,DoubleObject.class,DoubleObject.class});
-        GroupDataFrame g1=d1.groupBy("id");
-//        g1.max().print();
-//        g1.min().print();
-//        g1.sum().print();
+        GroupDataFrame g1=d1.groupBy(new String[]{"id"});
+
+        g1.max().print();
+        g1.min().print();
+        g1.sum().print();
         g1.apply(new Mediana()).print();
     }
 }

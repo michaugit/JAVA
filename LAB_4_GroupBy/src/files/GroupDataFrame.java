@@ -13,9 +13,9 @@ public class GroupDataFrame implements GroupBy {
         data = new LinkedList<DataFrame>();
     }
 
-    public void print(String idItWasGroupedBy) {
+    public void print() {
         for (DataFrame df : data) {
-            System.out.println(df.get(idItWasGroupedBy).data.get(0).toString());
+            df.print();
         }
     }
 
