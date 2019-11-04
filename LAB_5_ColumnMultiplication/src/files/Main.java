@@ -113,7 +113,7 @@ public class Main {
 //        g1.apply(new Mediana()).print();
 
 
-        DataFrame d1 = new DataFrame("C:\\Users\\resta\\Desktop\\zad2.csv", new Class[]{StringObject.class, IntegerObject.class, DoubleObject.class, DateObject.class});
+        DataFrame d1 = new DataFrame("E:\\Java\\GIT\\LAB_5_ColumnMultiplication\\groupby.csv\\zad2.csv", new Class[]{StringObject.class, IntegerObject.class, DoubleObject.class, DateObject.class});
 
         d1.print();
 //
