@@ -20,7 +20,7 @@ public class GroupDataFrame implements GroupBy {
     }
 
     @Override
-    public DataFrame max() {
+    public DataFrame max() throws InconsistentTypeException, InstantiationException, ParseException, IllegalAccessException {
         DataFrame ret = new DataFrame();
         try {
             for (DataFrame df : data) { //przechodzenie po każdej grupie
@@ -28,10 +28,17 @@ public class GroupDataFrame implements GroupBy {
                 for (Column colDF : df.tab) { //przechodzenie po każdej kolumnie
                     Value max;
                     max = (colDF.data.get(0));
+                    Integer iter= 0;
                     for (Value obj : colDF.data) {//przechodzenie po danych  w kolumnie
-                        if (max.lte(obj)) {
-                            max = obj;
+                        try {
+                            if (max.lte(obj)) {
+                                max = obj;
+                            }
                         }
+                        catch(Exception e){
+                            throw new InconsistentTypeException(colDF.name,iter);
+                        }
+                        iter++;
                     }
                     Value deepCopy = colDF.type.newInstance();
                     deepCopy.create(max.toString());
@@ -42,6 +49,9 @@ public class GroupDataFrame implements GroupBy {
                 ret.addAnotherDF(retGroup);
             }
         } catch (Exception e) {
+            if(e instanceof InconsistentTypeException){
+                throw e;
+            }
             System.out.println(e.toString());
         }
         return ret;

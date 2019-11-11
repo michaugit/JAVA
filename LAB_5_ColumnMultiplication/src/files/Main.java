@@ -9,7 +9,7 @@ import java.util.Date;
 
 public class Main {
 
-    public static void main(String[] args) throws SizeOfColumnsException {
+    public static void main(String[] args) throws SizeOfColumnsException, ParseException, IllegalAccessException, InconsistentTypeException, InstantiationException {
 //        IntegerObject i1= new IntegerObject();
 //        i1.create("10");
 //        IntegerObject i2= new IntegerObject();
@@ -114,26 +114,35 @@ public class Main {
 
 
         DataFrame d1 = new DataFrame("E:\\Java\\GIT\\LAB_5_ColumnMultiplication\\groupby.csv\\zad2.csv", new Class[]{StringObject.class, IntegerObject.class, DoubleObject.class, DateObject.class});
-
-        d1.print();
 //
+//        d1.print();
+////
 //        IntegerObject io1 = new IntegerObject();
 //        io1.create("2");
 //        DoubleObject do1 = new DoubleObject();
 //        do1.create("2.25");
 //        StringObject so1 = new StringObject();
 //        so1.create(" XD");
+//        DateObject date1= new DateObject();
+//        date1.create("2016-06-23");
+////
+////
+////        d1.addValueToCln("id", so1);
+////        d1.powClnToValue("val1", io1);
+////        d1.mulClnByValue("val2", do1);
+////        d1.subValueFromCln("val3", io1);
 //
 //
-//        d1.addValueToCln("id", so1);
-//        d1.powClnToValue("val1", io1);
-//        d1.mulClnByValue("val2", do1);
-//        d1.subValueFromCln("val3", io1);
+//        d1.get("id").data.add(so1);
+//        d1.get("val1").data.add(io1);
+//        d1.get("val2").data.add(so1);
+//        d1.get("val3").data.add(date1);
+//
+//        d1.print();
+//
+        DataFrame df1 = d1.groupBy(new String[]{}).max();
 
-        d1.addClnToCln("val2", "val3");
-
-        d1.print();
-
+        df1.print();
 
     }
 }

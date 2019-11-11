@@ -10,12 +10,12 @@ public class DataFrame implements Cloneable {
     public ArrayList<Column> tab;
     protected Integer size;
 
-    DataFrame() {
+    public DataFrame() {
         tab = new ArrayList<Column>();
         size = 0;
     }
 
-    DataFrame(String[] name, Class<? extends Value>[] type) {
+    public DataFrame(String[] name, Class<? extends Value>[] type) {
         tab = new ArrayList<Column>();
         size = 0;
         int iter = 0;
@@ -27,7 +27,7 @@ public class DataFrame implements Cloneable {
     //Konstruktory z header jako String- jeśli jest podany to oznacza że nie ma nagłówka,
     // jeśli go nie ma, ocznacza to że csv posiada nagłówek w pierwszym wierszu.
 
-    DataFrame(String inputFile, Class<? extends Value>[] type, String[] headerName) {
+    public DataFrame(String inputFile, Class<? extends Value>[] type, String[] headerName) {
         try {
             // Open the file
             FileInputStream fstream = new FileInputStream(inputFile);
@@ -60,7 +60,7 @@ public class DataFrame implements Cloneable {
         }
     }
 
-    DataFrame(String inputFile, Class<? extends Value>[] type) {
+    public DataFrame(String inputFile, Class<? extends Value>[] type) {
         try {
             // Open the file
             FileInputStream fstream = new FileInputStream(inputFile);
@@ -99,7 +99,7 @@ public class DataFrame implements Cloneable {
     }
     //Konstruktor z headerem jako boolean, gdy boolean false kolumny przyjmują nazwe "default".
 
-    DataFrame(String inputFile, Class<? extends Value>[] type, boolean header) {
+    public DataFrame(String inputFile, Class<? extends Value>[] type, boolean header) {
         try {
             // Open the file
             FileInputStream fstream = new FileInputStream(inputFile);
@@ -238,10 +238,10 @@ public class DataFrame implements Cloneable {
         LinkedList<DataFrame> grouped = new LinkedList<DataFrame>();
         LinkedList<DataFrame> groupedCopy = new LinkedList<DataFrame>();
         grouped.add(this);
-        for(String key : keys) {
-            groupedCopy= (LinkedList<DataFrame>) grouped.clone();
+        for (String key : keys) {
+            groupedCopy = (LinkedList<DataFrame>) grouped.clone();
             grouped.clear();
-            for(DataFrame df : groupedCopy) {
+            for (DataFrame df : groupedCopy) {
                 Map<String, DataFrame> groupMap = new TreeMap<>();
                 for (int i = 0; i < df.size(); i++) {
                     DataFrame row = df.iloc(i);
@@ -270,7 +270,7 @@ public class DataFrame implements Cloneable {
 
         }
         GroupDataFrame ret = new GroupDataFrame();
-        ret.data=grouped;
+        ret.data = grouped;
         return ret;
     }
 
@@ -297,10 +297,9 @@ public class DataFrame implements Cloneable {
         for (int i = 0; i < this.size(); ++i) {
             System.out.println();
             for (Column cln : this.tab) {
-                if(i < cln.data.size()){
+                if (i < cln.data.size()) {
                     System.out.print(cln.data.get(i).toString() + getSpacesToPrint(cln.data.get(i).toString()));
-                }
-                else {
+                } else {
                     System.out.print("null" + getSpacesToPrint("null"));
                 }
             }
@@ -330,32 +329,36 @@ public class DataFrame implements Cloneable {
         return newDF;
     }
 
-    public DataFrame addValueToCln(String colName, Value value){
-        for(Value v : get(colName).data){
+    public DataFrame addValueToCln(String colName, Value value) {
+        for (Value v : get(colName).data) {
             v.add(value);
         }
         return this;
     }
-    public DataFrame subValueFromCln(String colName, Value value){
-        for(Value v : get(colName).data){
+
+    public DataFrame subValueFromCln(String colName, Value value) {
+        for (Value v : get(colName).data) {
             v.sub(value);
         }
         return this;
     }
-    public DataFrame mulClnByValue(String colName, Value value){
-        for(Value v : get(colName).data){
+
+    public DataFrame mulClnByValue(String colName, Value value) {
+        for (Value v : get(colName).data) {
             v.mul(value);
         }
         return this;
     }
-    public DataFrame divClnByValue(String colName, Value value){
-        for(Value v : get(colName).data){
+
+    public DataFrame divClnByValue(String colName, Value value) {
+        for (Value v : get(colName).data) {
             v.div(value);
         }
         return this;
     }
-    public DataFrame powClnToValue(String colName, Value value){
-        for(Value v : get(colName).data){
+
+    public DataFrame powClnToValue(String colName, Value value) {
+        for (Value v : get(colName).data) {
             v.pow(value);
         }
         return this;
@@ -363,8 +366,81 @@ public class DataFrame implements Cloneable {
 
 
     public DataFrame addClnToCln(String colName1, String colName2) throws SizeOfColumnsException {
-        if(this.get(colName1).data.size() != this.get(colName2).data.size()){
-            throw new SizeOfColumnsException(colName1,colName2);
+        if (this.get(colName1).data.size() != this.get(colName2).data.size()) {
+            throw new SizeOfColumnsException(colName1, colName2);
+        } else {
+            Column result = new Column(colName1 + " + " + colName2, this.get(colName1).type);
+            for (int i = 0; i < this.get(colName1).data.size(); i++) {
+                Value v = this.get(colName1).data.get(i).clone();
+                v.add(this.get(colName2).data.get(i));
+                result.data.add(v);
+            }
+            this.tab.add(result);
+
+        }
+        return this;
+    }
+
+    public DataFrame subClnFromCln(String colName1, String colName2) throws SizeOfColumnsException {
+        if (this.get(colName1).data.size() != this.get(colName2).data.size()) {
+            throw new SizeOfColumnsException(colName1, colName2);
+        } else {
+            Column result = new Column(colName1 + " - " + colName2, this.get(colName1).type);
+            for (int i = 0; i < this.get(colName1).data.size(); i++) {
+                Value v = this.get(colName1).data.get(i).clone();
+                v.sub(this.get(colName2).data.get(i));
+                result.data.add(v);
+            }
+            this.tab.add(result);
+
+        }
+        return this;
+    }
+
+    public DataFrame mulClnByCln(String colName1, String colName2) throws SizeOfColumnsException {
+        if (this.get(colName1).data.size() != this.get(colName2).data.size()) {
+            throw new SizeOfColumnsException(colName1, colName2);
+        } else {
+            Column result = new Column(colName1 + " * " + colName2, this.get(colName1).type);
+            for (int i = 0; i < this.get(colName1).data.size(); i++) {
+                Value v = this.get(colName1).data.get(i).clone();
+                v.mul(this.get(colName2).data.get(i));
+                result.data.add(v);
+            }
+            this.tab.add(result);
+
+        }
+        return this;
+    }
+
+    public DataFrame divClnByCln(String colName1, String colName2) throws SizeOfColumnsException {
+        if (this.get(colName1).data.size() != this.get(colName2).data.size()) {
+            throw new SizeOfColumnsException(colName1, colName2);
+        } else {
+            Column result = new Column(colName1 + " / " + colName2, this.get(colName1).type);
+            for (int i = 0; i < this.get(colName1).data.size(); i++) {
+                Value v = this.get(colName1).data.get(i).clone();
+                v.div(this.get(colName2).data.get(i));
+                result.data.add(v);
+            }
+            this.tab.add(result);
+
+        }
+        return this;
+    }
+
+    public DataFrame powClnToCln(String colName1, String colName2) throws SizeOfColumnsException {
+        if (this.get(colName1).data.size() != this.get(colName2).data.size()) {
+            throw new SizeOfColumnsException(colName1, colName2);
+        } else {
+            Column result = new Column(colName1 + " ^ " + colName2, this.get(colName1).type);
+            for (int i = 0; i < this.get(colName1).data.size(); i++) {
+                Value v = this.get(colName1).data.get(i).clone();
+                v.pow(this.get(colName2).data.get(i));
+                result.data.add(v);
+            }
+            this.tab.add(result);
+
         }
         return this;
     }

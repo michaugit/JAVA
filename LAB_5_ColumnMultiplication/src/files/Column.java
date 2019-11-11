@@ -13,8 +13,8 @@ public class Column{
     public Column(Column copy){
 
     }
-    protected String name;
-    protected Class<Value> type;
+    public String name;
+    public Class<Value> type;
     public ArrayList<Value> data;
     protected int index;
 }
