@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="background" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="600.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <children>
+      <MenuBar layoutY="1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem fx:id="LoadFromFileButton" mnemonicParsing="false" onAction="#LoadFromFile" text="Load from file" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <TableView fx:id="table" layoutX="21.0" layoutY="56.0" prefHeight="293.0" prefWidth="368.0" visible="false" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="35.0" />
+      <Button fx:id="max" layoutX="474.0" layoutY="101.0" mnemonicParsing="false" onAction="#maxClicked" prefWidth="150.0" text="Max From Groups" AnchorPane.rightAnchor="0.0" />
+      <Button layoutX="543.0" layoutY="200.0" mnemonicParsing="false" text="Button" AnchorPane.rightAnchor="5.0" />
+      <Button layoutX="543.0" layoutY="236.0" mnemonicParsing="false" text="Button" AnchorPane.rightAnchor="5.0" />
+      <Button layoutX="543.0" layoutY="273.0" mnemonicParsing="false" text="Button" AnchorPane.rightAnchor="5.0" />
+      <Label fx:id="commandLine" layoutX="14.0" layoutY="377.0" prefHeight="18.0" prefWidth="487.0" AnchorPane.bottomAnchor="1.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="0.0">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font></Label>
+      <Label layoutX="529.0" layoutY="45.0" prefHeight="18.0" prefWidth="100.0" text="GroupBy:" textAlignment="CENTER" AnchorPane.rightAnchor="5.0">
+         <font>
+            <Font name="System Bold Italic" size="12.0" />
+         </font>
+      </Label>
+      <TextField fx:id="groupby" layoutX="491.0" layoutY="63.0" minWidth="150.0" prefHeight="26.0" prefWidth="150.0" promptText="arg_1, arg_2, ...." AnchorPane.rightAnchor="0.0" />
+   </children>
+</AnchorPane>
