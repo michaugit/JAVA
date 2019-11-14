@@ -21,8 +21,8 @@ import java.util.ArrayList;
 
 public class Controller {
     private static Stage plotStage;
-    private DataFrame mainDataFrame;
-    private DataFrame groupedBySthDF;
+    private static DataFrame mainDataFrame;
+    private static DataFrame groupedBySthDF;
     //GroupDataFrame mainGroupedDataFrame;
 
     private void printCommand(String commandToPrint) {
@@ -267,16 +267,32 @@ public class Controller {
     public void generatePlotClicked(ActionEvent event){
         ChoiceBox plotFrom= (ChoiceBox)  getPlotScene().lookup("#plotFrom");
         Label plotCommand= (Label) getPlotScene().lookup("#plotCommand");
+        TextField axisX = (TextField) getPlotScene().lookup("#axisX");
+        TextField axisY = (TextField) getPlotScene().lookup("#axisY");
         plotCommand.setVisible(false);
         if(plotFrom.getValue()== null){
             plotCommand.setVisible(true);
-            plotCommand.setText("Please select the DataFrame from which you want to make a chart");
+            plotCommand.setText("Please select the DataFrame from which you want to make a chart" );
         }
         else if(((String) plotFrom.getValue()).equals("Original DataFrame")){
-            //plotCommand.setText("original");
+            ArrayList<String> possibleWords = new ArrayList<>();
+            for (Column cln : mainDataFrame.tab) {
+                possibleWords.add(cln.name);
+            }
+            if(!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())){
+                plotCommand.setVisible(true);
+                plotCommand.setText("Choose the correct name of columns");
+            }
         }
         else if(((String) plotFrom.getValue()).equals("Grouped DataFrame")){
-            //plotCommand.setText("grouped");
+            ArrayList<String> possibleWords = new ArrayList<>();
+            for (Column cln : groupedBySthDF.tab) {
+                possibleWords.add(cln.name);
+            }
+            if(!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())){
+                plotCommand.setVisible(true);
+                plotCommand.setText("Choose the correct name of GROUPED columns");
+            }
         }
     }
     Scene getMainScene(){
