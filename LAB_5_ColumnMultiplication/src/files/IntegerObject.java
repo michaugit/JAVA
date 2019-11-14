@@ -1,7 +1,7 @@
 package files;
 
 public class IntegerObject extends Value {
-    Integer value;
+    public Integer value;
 
     public IntegerObject clone(){
         IntegerObject copy = new IntegerObject();

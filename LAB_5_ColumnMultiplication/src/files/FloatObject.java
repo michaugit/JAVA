@@ -2,7 +2,7 @@ package files;
 
 public class FloatObject extends Value {
 
-    Float value;
+    public Float value;
 
     public FloatObject clone(){
         FloatObject copy = new FloatObject();

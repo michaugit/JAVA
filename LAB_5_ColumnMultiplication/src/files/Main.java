@@ -141,7 +141,6 @@ public class Main {
 //        d1.print();
 //
         DataFrame df1 = d1.groupBy(new String[]{}).max();
-
         df1.print();
 
     }

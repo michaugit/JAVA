@@ -2,7 +2,7 @@ package files;
 
 public class DoubleObject extends Value {
 
-    Double value;
+    public Double value;
 
     public DoubleObject clone(){
         DoubleObject copy = new DoubleObject();
