@@ -9,10 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.XYChart;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
@@ -53,10 +50,9 @@ public class Controller {
             groupedBySthDF = mainDataFrame.clone();
             printCommand("File loaded!");
             transfromDataFrameToTableView(mainDataFrame);
-        } catch ( NullPointerException e) {
+        } catch (NullPointerException e) {
             this.printCommand("Any file has NOT been loaded!");
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             this.printCommand(e.toString());
         }
     }
@@ -101,7 +97,7 @@ public class Controller {
                     keys = new String[]{};
                 }
                 try {
-                    groupedBySthDF=mainDataFrame.groupBy(keys).max();
+                    groupedBySthDF = mainDataFrame.groupBy(keys).max();
                     transfromDataFrameToTableView(groupedBySthDF);
                 } catch (RuntimeException e) {
                     this.printCommand(e.toString());
@@ -124,7 +120,7 @@ public class Controller {
                     keys = new String[]{};
                 }
                 try {
-                    groupedBySthDF=mainDataFrame.groupBy(keys).min();
+                    groupedBySthDF = mainDataFrame.groupBy(keys).min();
                     transfromDataFrameToTableView(groupedBySthDF);
                 } catch (RuntimeException e) {
                     this.printCommand(e.toString());
@@ -147,7 +143,7 @@ public class Controller {
                     keys = new String[]{};
                 }
                 try {
-                    groupedBySthDF=mainDataFrame.groupBy(keys).mean();
+                    groupedBySthDF = mainDataFrame.groupBy(keys).mean();
                     transfromDataFrameToTableView(groupedBySthDF);
                 } catch (RuntimeException e) {
                     this.printCommand(e.toString());
@@ -159,30 +155,29 @@ public class Controller {
     }
 
     public void stdClicked(ActionEvent event) {
-        try{
-        Scene scene = Main.getPrimaryStage().getScene();
-        if (mainDataFrame == null) {
-            this.printCommand("Please load DataFrame!");
-        } else {
-            TextField k = (TextField) scene.lookup("#groupby");
-            String[] keys = k.getText().split(", ");
-            if (keys.length == 1 && keys[0].isEmpty()) {
-                keys = new String[]{};
+        try {
+            Scene scene = Main.getPrimaryStage().getScene();
+            if (mainDataFrame == null) {
+                this.printCommand("Please load DataFrame!");
+            } else {
+                TextField k = (TextField) scene.lookup("#groupby");
+                String[] keys = k.getText().split(", ");
+                if (keys.length == 1 && keys[0].isEmpty()) {
+                    keys = new String[]{};
+                }
+                try {
+                    groupedBySthDF = mainDataFrame.groupBy(keys).std();
+                    transfromDataFrameToTableView(groupedBySthDF);
+                } catch (RuntimeException e) {
+                    this.printCommand(e.toString());
+                }
             }
-            try {
-                groupedBySthDF=mainDataFrame.groupBy(keys).std();
-                transfromDataFrameToTableView(groupedBySthDF);
-            } catch (RuntimeException e) {
-                this.printCommand(e.toString());
-            }
-        }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             this.printCommand(e.toString());
         }
     }
 
-    public void sumClicked(ActionEvent event){
+    public void sumClicked(ActionEvent event) {
         Scene scene = Main.getPrimaryStage().getScene();
         if (mainDataFrame == null) {
             this.printCommand("Please load DataFrame!");
@@ -193,7 +188,7 @@ public class Controller {
                 keys = new String[]{};
             }
             try {
-                groupedBySthDF=mainDataFrame.groupBy(keys).sum();
+                groupedBySthDF = mainDataFrame.groupBy(keys).sum();
                 transfromDataFrameToTableView(groupedBySthDF);
             } catch (RuntimeException e) {
                 this.printCommand(e.toString());
@@ -212,7 +207,7 @@ public class Controller {
                 keys = new String[]{};
             }
             try {
-                groupedBySthDF=mainDataFrame.groupBy(keys).var();
+                groupedBySthDF = mainDataFrame.groupBy(keys).var();
                 transfromDataFrameToTableView(groupedBySthDF);
             } catch (RuntimeException e) {
                 this.printCommand(e.toString());
@@ -231,7 +226,7 @@ public class Controller {
                 keys = new String[]{};
             }
             try {
-                groupedBySthDF=mainDataFrame.groupBy(keys).apply(new Mediana());
+                groupedBySthDF = mainDataFrame.groupBy(keys).apply(new Mediana());
                 transfromDataFrameToTableView(groupedBySthDF);
             } catch (RuntimeException e) {
                 this.printCommand(e.toString());
@@ -239,7 +234,7 @@ public class Controller {
         }
     }
 
-    public void plotClicked(ActionEvent event){
+    public void plotClicked(ActionEvent event) {
         try {
             if (mainDataFrame == null) {
                 this.printCommand("Please load DataFrame!");
@@ -260,61 +255,92 @@ public class Controller {
                 TextFields.bindAutoCompletion(axisX, possibleWords);
                 TextFields.bindAutoCompletion(axisY, possibleWords);
 
-                ChoiceBox plotFrom= (ChoiceBox) getPlotScene().lookup("#plotFrom");
-                plotFrom.getItems().addAll(new String[]{"Original DataFrame","Grouped DataFrame"});
+                ChoiceBox plotFrom = (ChoiceBox) getPlotScene().lookup("#plotFrom");
+                plotFrom.getItems().addAll(new String[]{"Original DataFrame", "Grouped DataFrame"});
+
+                ChoiceBox chartType = (ChoiceBox) getPlotScene().lookup("#chartType");
+                chartType.getItems().addAll(new String[]{"Scatter plot", "Bar chart"});
             }
             //generowanie wykresu po kliknięciu plotButton
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void generatePlotClicked(ActionEvent event){
-        ChoiceBox plotFrom= (ChoiceBox)  getPlotScene().lookup("#plotFrom");
-        Label plotCommand= (Label) getPlotScene().lookup("#plotCommand");
+    public void generatePlotClicked(ActionEvent event) {
+        ChoiceBox plotFrom = (ChoiceBox) getPlotScene().lookup("#plotFrom");
+        ChoiceBox chartType = (ChoiceBox) getPlotScene().lookup("#chartType");
+        Label plotCommand = (Label) getPlotScene().lookup("#plotCommand");
         TextField axisX = (TextField) getPlotScene().lookup("#axisX");
         TextField axisY = (TextField) getPlotScene().lookup("#axisY");
         plotCommand.setVisible(false);
-        if(plotFrom.getValue()== null){
+
+        ArrayList<Class<? extends Value>> objToString = new ArrayList<>();
+        objToString.add(StringObject.class);
+        objToString.add(DateObject.class);
+        ArrayList<Class<? extends Value>> objToObject = new ArrayList<>();
+        objToObject.add(IntegerObject.class);
+        objToObject.add(DoubleObject.class);
+        objToObject.add(FloatObject.class);
+
+        if (plotFrom.getValue() == null) {
             plotCommand.setVisible(true);
-            plotCommand.setText("Please select the DataFrame from which you want to make a chart" );
-        }
-        else if(((String) plotFrom.getValue()).equals("Original DataFrame")){
+            plotCommand.setText("Please select the DataFrame from which you want to make a chart");
+        } else if (((String) plotFrom.getValue()).equals("Original DataFrame")) {
             ArrayList<String> possibleWords = new ArrayList<>();
             for (Column cln : mainDataFrame.tab) {
                 possibleWords.add(cln.name);
             }
-            if(!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())){
+            if (!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())) {
                 plotCommand.setVisible(true);
                 plotCommand.setText("Choose the correct name of columns");
+            } else {
+                if (((String) chartType.getValue()).equals("Scatter plot")) {
+                    drawScatterPlot(mainDataFrame, axisX.getText(), axisY.getText());
+                } else if (((String) chartType.getValue()).equals("Bar chart")) {
+                    //rozpoznać kolumny
+                    if( (objToString.contains(mainDataFrame.get(axisX.getText()).type) && objToString.contains(mainDataFrame.get(axisY.getText()).type)) ||
+                       (objToObject.contains(mainDataFrame.get(axisX.getText()).type) && objToObject.contains(mainDataFrame.get(axisY.getText()).type))){
+                        plotCommand.setVisible(true);
+                        plotCommand.setText("You can not make Bar chart from two String / Numeric columns");
+                    }
+                    else {
+                        drawBarPlot(mainDataFrame, axisX.getText(), axisY.getText());
+                    }
+                }
             }
-            else{
-                drawPlot(mainDataFrame,axisX.getText(),axisY.getText());
-            }
-        }
-        else if(((String) plotFrom.getValue()).equals("Grouped DataFrame")){
+        } else if (((String) plotFrom.getValue()).equals("Grouped DataFrame")) {
             ArrayList<String> possibleWords = new ArrayList<>();
             for (Column cln : groupedBySthDF.tab) {
                 possibleWords.add(cln.name);
             }
-            if(!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())){
+            if (!possibleWords.contains((String) axisX.getText()) || !possibleWords.contains((String) axisY.getText())) {
                 plotCommand.setVisible(true);
                 plotCommand.setText("Choose the correct name of GROUPED columns");
-            }
-            else {
-                drawPlot(groupedBySthDF,axisX.getText(),axisY.getText());
+            } else {
+                if (((String) chartType.getValue()).equals("Scatter plot")) {
+                    drawScatterPlot(groupedBySthDF, axisX.getText(), axisY.getText());
+                } else if (((String) chartType.getValue()).equals("Bar chart")) {
+                    if ((objToString.contains(groupedBySthDF.get(axisX.getText()).type) && objToString.contains(groupedBySthDF.get(axisY.getText()).type)) ||
+                            (objToObject.contains(groupedBySthDF.get(axisX.getText()).type) && objToObject.contains(groupedBySthDF.get(axisY.getText()).type))) {
+                        plotCommand.setVisible(true);
+                        plotCommand.setText("You can not make Bar chart from two String / Numeric columns");
+                    } else {
+                        drawBarPlot(groupedBySthDF, axisX.getText(), axisY.getText());
+                    }
+                }
             }
         }
     }
 
-    void drawPlot(DataFrame DF,String colNameToAxisX, String colNameToAxisY){
+    void drawScatterPlot(DataFrame DF, String colNameToAxisX, String colNameToAxisY) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("plot.fxml"));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
             stage.setScene(new Scene(root1));
-            stage.setTitle("Plot from DataFrame");
+            stage.setTitle("Scatter plot from DataFrame");
             stage.setResizable(false);
             stage.setWidth(800);
             stage.setHeight(630);
@@ -323,101 +349,135 @@ public class Controller {
             plotStage.close();
 
 
-
-
             XYChart.Series series = new XYChart.Series();
-            ArrayList<Class<? extends Value>> objToString= new ArrayList<>();
+            ArrayList<Class<? extends Value>> objToString = new ArrayList<>();
             objToString.add(StringObject.class);
             objToString.add(DateObject.class);
-            ArrayList<Class<? extends Value>> objToObject= new ArrayList<>();
+            ArrayList<Class<? extends Value>> objToObject = new ArrayList<>();
             objToObject.add(IntegerObject.class);
             objToObject.add(DoubleObject.class);
             objToObject.add(FloatObject.class);
+            ChoiceBox plotFrom = (ChoiceBox) getPlotScene().lookup("#plotFrom");
 
-            if( objToString.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)){
-                for( int i=0; i< DF.size(); i++){
+            if (objToString.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)) {
+//########################################################################################################################
+//                bez kolorowania grupami
+                for (int i = 0; i < DF.size(); i++) {
                     series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), DF.get(colNameToAxisY).data.get(i).toString()));
                 }
 
                 CategoryAxis xAxis = new CategoryAxis();
                 CategoryAxis yAxis = new CategoryAxis();
-                final ScatterChart<String,String> sc = new ScatterChart<>(xAxis, yAxis);
+                final ScatterChart<String, String> sc = new ScatterChart<>(xAxis, yAxis);
                 xAxis.setLabel(DF.get(colNameToAxisX).name);
                 yAxis.setLabel(DF.get(colNameToAxisY).name);
                 sc.setPrefSize(800, 600);
                 sc.getData().addAll(series);
                 background.getChildren().add(sc);
                 sc.setLegendVisible(false);
-
-            }
-            else if(objToObject.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)){
+////########################################################################################################################
+////              z kolorowaniem grupami ale tylko
+//                CategoryAxis xAxis = new CategoryAxis();
+//                CategoryAxis yAxis = new CategoryAxis();
+//                final ScatterChart<String, String> sc = new ScatterChart<>(xAxis, yAxis);
+//                xAxis.setLabel(DF.get(colNameToAxisX).name);
+//                yAxis.setLabel(DF.get(colNameToAxisY).name);
+//
+//                if (((String) plotFrom.getValue()).equals("Grouped DataFrame")) {
+//                    TextField k = (TextField) Main.getPrimaryStage().getScene().lookup("#groupby");
+//                    String[] keys = k.getText().split(", ");
+//                    for (int i = 0; i < DF.size(); i++) {
+//                        series = new XYChart.Series();
+//                        String seriesName = new String();
+//                        for (String str : keys) {
+//                            if (seriesName.isEmpty()) {
+//                                seriesName = new String(DF.get(str).data.get(i).toString());
+//                            } else {
+//                                seriesName = new String(seriesName + ", " + DF.get(str).data.get(i).toString());
+//                            }
+//                        }
+//                        series.setName(seriesName);
+//                        series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), DF.get(colNameToAxisY).data.get(i).toString()));
+//                        sc.getData().add(series);
+//                    }
+//                    sc.setLegendVisible(true);
+//                } else {
+//                    for (int i = 0; i < DF.size(); i++) {
+//                        series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), DF.get(colNameToAxisY).data.get(i).toString()));
+//                    }
+//                    sc.getData().addAll(series);
+//                    sc.setLegendVisible(false);
+//                } //end of else
+//
+//                sc.setPrefSize(800, 600);
+//                background.getChildren().add(sc);
+//######################################################################################################################
+            } else if (objToObject.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)) {
                 Object x;
                 Object y;
-                for( int i=0; i< DF.size(); i++) {
+                for (int i = 0; i < DF.size(); i++) {
                     if (DF.get(colNameToAxisX).data.get(i) instanceof IntegerObject) {
-                        x=((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
+                        x = ((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
                     } else if (DF.get(colNameToAxisX).data.get(i) instanceof DoubleObject) {
-                        x=((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
-                    } else{
-                        x= ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
+                        x = ((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
+                    } else {
+                        x = ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
                     }
                     if (DF.get(colNameToAxisY).data.get(i) instanceof IntegerObject) {
-                        y=((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
+                        y = ((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
                     } else if (DF.get(colNameToAxisY).data.get(i) instanceof DoubleObject) {
-                        y=((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
-                    } else{
-                        y= ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
+                        y = ((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
+                    } else {
+                        y = ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
                     }
-                    series.getData().add(new XYChart.Data<>(x,y));
+                    series.getData().add(new XYChart.Data<>(x, y));
                 }
 
                 NumberAxis xAxis = new NumberAxis();
                 NumberAxis yAxis = new NumberAxis();
-                final ScatterChart<Number,Number> sc = new ScatterChart<>(xAxis, yAxis);
+                final ScatterChart<Number, Number> sc = new ScatterChart<>(xAxis, yAxis);
                 xAxis.setLabel(DF.get(colNameToAxisX).name);
                 yAxis.setLabel(DF.get(colNameToAxisY).name);
                 sc.setPrefSize(800, 600);
                 sc.getData().addAll(series);
                 background.getChildren().add(sc);
                 sc.setLegendVisible(false);
-            }
-            else if(objToString.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)){
+            } else if (objToString.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)) {
                 Object y;
-                for( int i=0; i< DF.size(); i++) {
+                for (int i = 0; i < DF.size(); i++) {
                     if (DF.get(colNameToAxisY).data.get(i) instanceof IntegerObject) {
-                        y=((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
+                        y = ((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
                     } else if (DF.get(colNameToAxisY).data.get(i) instanceof DoubleObject) {
-                        y=((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
-                    } else{
-                        y= ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
+                        y = ((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
+                    } else {
+                        y = ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
                     }
-                    series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(),y));
+                    series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), y));
                 }
                 CategoryAxis xAxis = new CategoryAxis();
                 NumberAxis yAxis = new NumberAxis();
-                final ScatterChart<String,Number> sc = new ScatterChart<>(xAxis, yAxis);
+                final ScatterChart<String, Number> sc = new ScatterChart<>(xAxis, yAxis);
                 xAxis.setLabel(DF.get(colNameToAxisX).name);
                 yAxis.setLabel(DF.get(colNameToAxisY).name);
                 sc.setPrefSize(800, 600);
                 sc.getData().addAll(series);
                 background.getChildren().add(sc);
                 sc.setLegendVisible(false);
-            }
-            else if(objToObject.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)){
+            } else if (objToObject.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)) {
                 Object x;
-                for( int i=0; i< DF.size(); i++) {
+                for (int i = 0; i < DF.size(); i++) {
                     if (DF.get(colNameToAxisX).data.get(i) instanceof IntegerObject) {
-                        x=((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
+                        x = ((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
                     } else if (DF.get(colNameToAxisX).data.get(i) instanceof DoubleObject) {
-                        x=((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
-                    } else{
-                        x= ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
+                        x = ((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
+                    } else {
+                        x = ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
                     }
-                    series.getData().add(new XYChart.Data<>(x,DF.get(colNameToAxisY).data.get(i).toString()));
+                    series.getData().add(new XYChart.Data<>(x, DF.get(colNameToAxisY).data.get(i).toString()));
                 }
                 NumberAxis xAxis = new NumberAxis();
                 CategoryAxis yAxis = new CategoryAxis();
-                final ScatterChart<Number,String> sc = new ScatterChart<>(xAxis, yAxis);
+                final ScatterChart<Number, String> sc = new ScatterChart<>(xAxis, yAxis);
                 xAxis.setLabel(DF.get(colNameToAxisX).name);
                 yAxis.setLabel(DF.get(colNameToAxisY).name);
                 sc.setPrefSize(800, 600);
@@ -425,22 +485,166 @@ public class Controller {
                 background.getChildren().add(sc);
                 sc.setLegendVisible(false);
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    Scene getMainScene(){
+    void drawBarPlot(DataFrame DF, String colNameToAxisX, String colNameToAxisY) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("plot.fxml"));
+            Parent root1 = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root1));
+            stage.setTitle("Bar plot  from DataFrame");
+            stage.setResizable(false);
+            stage.setWidth(800);
+            stage.setHeight(630);
+            stage.show();
+            AnchorPane background = (AnchorPane) stage.getScene().lookup("#background");
+            plotStage.close();
+
+
+            XYChart.Series series = new XYChart.Series();
+            ArrayList<Class<? extends Value>> objToString = new ArrayList<>();
+            objToString.add(StringObject.class);
+            objToString.add(DateObject.class);
+            ArrayList<Class<? extends Value>> objToObject = new ArrayList<>();
+            objToObject.add(IntegerObject.class);
+            objToObject.add(DoubleObject.class);
+            objToObject.add(FloatObject.class);
+
+            ChoiceBox plotFrom = (ChoiceBox) getPlotScene().lookup("#plotFrom");
+
+//            if (objToString.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)) {
+
+//                CategoryAxis xAxis = new CategoryAxis();
+//                CategoryAxis yAxis = new CategoryAxis();
+//                final BarChart<String, String> sc = new BarChart<>(xAxis, yAxis);
+//                xAxis.setLabel(DF.get(colNameToAxisX).name);
+//                yAxis.setLabel(DF.get(colNameToAxisY).name);
+//
+//
+////                if grouped--------------------------------------------------------------------------------------------
+////                if(((String) plotFrom.getValue()).equals("Grouped DataFrame")){
+////                    TextField k = (TextField) Main.getPrimaryStage().getScene().lookup("#groupby");
+////                    String[] keys = k.getText().split(", ");
+////                    for (int i = 0; i < DF.size(); i++) {
+////                        series = new XYChart.Series();
+////                        String seriesName = new String();
+////                        for (String str : keys) {
+////                            if (seriesName.isEmpty()) {
+////                                seriesName = new String(DF.get(str).data.get(1).toString());
+////                            } else {
+////                                seriesName = new String(seriesName + ", " + DF.get(colNameToAxisX).name);
+////                            }
+////                        }
+////                        series.setName(seriesName);
+////                        series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), DF.get(colNameToAxisY).data.get(i).toString()));
+////                        sc.getData().add(series);
+////                    }
+////                    sc.setLegendVisible(true);
+////                }
+////                else{//-----------------------------------------------------------------------------------------------
+//
+//                for (int i = 0; i < DF.size(); i++) {
+//                    series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), DF.get(colNameToAxisY).data.get(i).toString()));
+//                }
+//                sc.getData().addAll(series);
+//                sc.setLegendVisible(false);
+////                } //end of else
+//
+//                sc.setPrefSize(800, 600);
+//                background.getChildren().add(sc);
+//
+//            } else if (objToObject.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)) {
+//                Object x;
+//                Object y;
+//                for (int i = 0; i < DF.size(); i++) {
+//                    if (DF.get(colNameToAxisX).data.get(i) instanceof IntegerObject) {
+//                        x = ((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
+//                    } else if (DF.get(colNameToAxisX).data.get(i) instanceof DoubleObject) {
+//                        x = ((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
+//                    } else {
+//                        x = ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
+//                    }
+//                    if (DF.get(colNameToAxisY).data.get(i) instanceof IntegerObject) {
+//                        y = ((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
+//                    } else if (DF.get(colNameToAxisY).data.get(i) instanceof DoubleObject) {
+//                        y = ((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
+//                    } else {
+//                        y = ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
+//                    }
+//                    series.getData().add(new XYChart.Data<>(x, y));
+//                }
+//
+//                NumberAxis xAxis = new NumberAxis();
+//                NumberAxis yAxis = new NumberAxis();
+//                final BarChart<Number, Number> sc = new BarChart<>(xAxis, yAxis);
+//                xAxis.setLabel(DF.get(colNameToAxisX).name);
+//                yAxis.setLabel(DF.get(colNameToAxisY).name);
+//                sc.setPrefSize(800, 600);
+//                sc.getData().addAll(series);
+//                background.getChildren().add(sc);
+//                sc.setLegendVisible(false);
+//            } else
+            if (objToString.contains(DF.get(colNameToAxisX).type) && objToObject.contains(DF.get(colNameToAxisY).type)) {
+                Object y;
+                for (int i = 0; i < DF.size(); i++) {
+                    if (DF.get(colNameToAxisY).data.get(i) instanceof IntegerObject) {
+                        y = ((IntegerObject) DF.get(colNameToAxisY).data.get(i)).value;
+                    } else if (DF.get(colNameToAxisY).data.get(i) instanceof DoubleObject) {
+                        y = ((DoubleObject) DF.get(colNameToAxisY).data.get(i)).value;
+                    } else {
+                        y = ((FloatObject) DF.get(colNameToAxisY).data.get(i)).value;
+                    }
+                    series.getData().add(new XYChart.Data<>(DF.get(colNameToAxisX).data.get(i).toString(), y));
+                }
+                CategoryAxis xAxis = new CategoryAxis();
+                NumberAxis yAxis = new NumberAxis();
+                final BarChart<String, Number> sc = new BarChart<>(xAxis, yAxis);
+                xAxis.setLabel(DF.get(colNameToAxisX).name);
+                yAxis.setLabel(DF.get(colNameToAxisY).name);
+                sc.setPrefSize(800, 600);
+                sc.getData().addAll(series);
+                background.getChildren().add(sc);
+                sc.setLegendVisible(false);
+            } else if (objToObject.contains(DF.get(colNameToAxisX).type) && objToString.contains(DF.get(colNameToAxisY).type)) {
+                Object x;
+                for (int i = 0; i < DF.size(); i++) {
+                    if (DF.get(colNameToAxisX).data.get(i) instanceof IntegerObject) {
+                        x = ((IntegerObject) DF.get(colNameToAxisX).data.get(i)).value;
+                    } else if (DF.get(colNameToAxisX).data.get(i) instanceof DoubleObject) {
+                        x = ((DoubleObject) DF.get(colNameToAxisX).data.get(i)).value;
+                    } else {
+                        x = ((FloatObject) DF.get(colNameToAxisX).data.get(i)).value;
+                    }
+                    series.getData().add(new XYChart.Data<>(x, DF.get(colNameToAxisY).data.get(i).toString()));
+                }
+                NumberAxis xAxis = new NumberAxis();
+                CategoryAxis yAxis = new CategoryAxis();
+                final BarChart<Number, String> sc = new BarChart<>(xAxis, yAxis);
+                xAxis.setLabel(DF.get(colNameToAxisX).name);
+                yAxis.setLabel(DF.get(colNameToAxisY).name);
+                sc.setPrefSize(800, 600);
+                sc.getData().addAll(series);
+                background.getChildren().add(sc);
+                sc.setLegendVisible(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    Scene getMainScene() {
         return Main.getPrimaryStage().getScene();
     }
 
-    Scene getPlotScene(){
+    Scene getPlotScene() {
         return plotStage.getScene();
     }
-
-
 
 
 //    XYChart.Series<String,String> getSeries(DataFrame DF,String colNameToAxisX, String colNameToAxisY){
