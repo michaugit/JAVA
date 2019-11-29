@@ -6,6 +6,8 @@ import sun.util.calendar.BaseCalendar;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
@@ -131,14 +133,14 @@ public class Main {
 //
 //        DataFrame df1 = d1.groupBy(new String[]{}).max();
 //        df1.print();
-        StringObject s1= new StringObject();
-        s1.create("pole");
-        StringObject s2= new StringObject();
-        s2.create("poles");
-        IntegerObject i1= new IntegerObject();
-        i1.create("10");
-        DoubleObject d1= new DoubleObject();
-        d1.create("2.4545");
+//        StringObject s1= new StringObject();
+//        s1.create("pole");
+//        StringObject s2= new StringObject();
+//        s2.create("poles");
+//        IntegerObject i1= new IntegerObject();
+//        i1.create("10");
+//        DoubleObject d1= new DoubleObject();
+//        d1.create("2.4545");
 
 //        DataFrameDB df = new DataFrameDB(new String[]{"col1", "col2" , "col3"}, new Class[]{StringObject.class, IntegerObject.class, DoubleObject.class});
 //        df.tab.get(0).data.add(s1);
@@ -149,12 +151,23 @@ public class Main {
 //        df.tab.get(2).data.add(d1);
 //        df.print();
 
-        DataFrameDB df= new DataFrameDB();
-        df.loadDataFrameFromMySQL("datafrejm");
-        df.print();
+//        DataFrame df= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class,DateObject.class,DoubleObject.class,DoubleObject.class});
+//        df.exportDataFrameToMySQL("datafrejm");
 
-        DataFrame df2= df.sqlQueryToDF("select col1, col2 from datafrejm");
+        DataFrameDB df= new DataFrameDB("mysql.agh.edu.pl/mpieniad", "mpieniad", "W202QfWBGpyZGzWt");
+
+        //DataFrame df2= df.iloc(0,3,"datafrejm");
+        DataFrame df2= df.groupBy("datafrejm", new String[]{"id"}).applySQLfun( "variance", new String[]{"val","total"});
+        DataFrame df3= df.groupBy("datafrejm", new String[]{"id"}).mean();
+
+
+        System.out.println(df.size("datafrejm"));
         df2.print();
+        df3.print();
 
-    }
+
+
+
+
+        }
 }

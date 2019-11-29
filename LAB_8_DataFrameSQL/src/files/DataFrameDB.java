@@ -1,39 +1,30 @@
 package files;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import javax.xml.crypto.Data;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.text.ParseException;
+import java.util.*;
 
-public class DataFrameDB extends DataFrame {
+public class DataFrameDB {
     public Connection conn = null;
     public Statement stmt = null;
     public ResultSet rs = null;
+    private String dbAdressUrl;
+    private String username;
+    private String password;
 
-    public DataFrameDB() {
-        super();
-    }
-    public DataFrameDB(String[] name, Class<? extends Value>[] type){
-        super(name, type);
-    }
-    public DataFrameDB(String inputFile, Class<? extends Value>[] type, String[] headerName){
-        super(inputFile, type, headerName);
-    }
-    public DataFrameDB(String inputFile, Class<? extends Value>[] type){
-        super(inputFile,type);
-    }
-    public DataFrameDB(String inputFile, Class<? extends Value>[] type, boolean header) {
-        super(inputFile,type,header);
+    public DataFrameDB(String dbAdressUrl, String username, String password) {
+        this.dbAdressUrl = dbAdressUrl;
+        this.username = username;
+        this.password = password;
     }
 
     public void connect() {
         for (int i = 0; i < 3; i++) {
             try {
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
-                conn = DriverManager.getConnection("jdbc:mysql://mysql.agh.edu.pl/mpieniad",
-                        "mpieniad", "W202QfWBGpyZGzWt");
+                conn = DriverManager.getConnection("jdbc:mysql://" + dbAdressUrl,
+                        username, password);
                 break;
             } catch (SQLException ex) {
                 // handle any errors
@@ -46,7 +37,7 @@ public class DataFrameDB extends DataFrame {
         }
     }
 
-    public void freeUpResources(){
+    public void freeUpResources() {
         if (rs != null) {
             try {
                 rs.close();
@@ -64,13 +55,14 @@ public class DataFrameDB extends DataFrame {
         }
     }
 
-    public void exportDataFrameToMySQL(String tableName){
-        if(!tab.isEmpty()) {
+    public void exportDataFrameToMySQL(DataFrame dataframe, String tableName) {
+        if (!dataframe.tab.isEmpty()) {
             try {
                 connect();
                 stmt = conn.createStatement();
-                String sql = "CREATE TABLE IF NOT EXISTS "+ tableName + " ( " +createStringHeaderSQL() +
-                        " PRIMARY KEY (" + tab.get(0).name + "));";
+                String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " ( " + createStringHeaderSQL(dataframe) + ");";
+//                        " PRIMARY KEY (" + tab.get(0).name + ", " + tab.get(1).name +  ", " + tab.get(2).name +  ", " + tab.get(3).name + "));";
+
                 System.out.println(sql);
                 stmt.executeUpdate(sql);
 
@@ -78,30 +70,29 @@ public class DataFrameDB extends DataFrame {
                 numObj.add(IntegerObject.class);
                 numObj.add(DoubleObject.class);
                 numObj.add(FloatObject.class);
-                for(int i=0; i<size(); i++ ) {
-                    String val= new String();
-                    for (Column cln : tab){
-                        if(!val.isEmpty()){
-                            val = new String( val + ", ");
+                for (int i = 0; i < dataframe.size(); i++) {
+                    String val = new String();
+                    for (Column cln : dataframe.tab) {
+                        if (!val.isEmpty()) {
+                            val = new String(val + ", ");
                         }
-                        if(numObj.contains(cln.type)){
-                            val= new String (val + " " + cln.data.get(i).toString());
-                        }
-                        else{
-                            val= new String (val + " '" + cln.data.get(i).toString() + "'");
+                        if (numObj.contains(cln.type)) {
+                            val = new String(val + " " + cln.data.get(i).toString());
+                        } else {
+                            val = new String(val + " '" + cln.data.get(i).toString() + "'");
                         }
                     }
-                    stmt.executeUpdate("INSERT INTO "+ tableName + "  VALUES (" + val + ")");
+                    stmt.executeUpdate("INSERT INTO " + tableName + "  VALUES (" + val + ")");
                 }
-            freeUpResources();
+                freeUpResources();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void loadDataFrameFromMySQL(String tableName) {
-        this.tab.clear();
+    public DataFrame loadDataFrameFromMySQL(String tableName) {
+        DataFrame dataframe = new DataFrame();
         try {
             connect();
             stmt = conn.createStatement();
@@ -114,21 +105,21 @@ public class DataFrameDB extends DataFrame {
                 switch (rsmd.getColumnType(i)) {
                     case 4: //INT
                         cln = new Column(rsmd.getColumnName(i), IntegerObject.class);
-                        tab.add(cln);
+                        dataframe.tab.add(cln);
                         break;
                     case 2: //NUMERIC
                     case 8: //DOUBLE
                         cln = new Column(rsmd.getColumnName(i), DoubleObject.class);
-                        tab.add(cln);
+                        dataframe.tab.add(cln);
                         break;
                     case 1: //CHAR
                     case 12: //VARCHAR
                         cln = new Column(rsmd.getColumnName(i), StringObject.class);
-                        tab.add(cln);
+                        dataframe.tab.add(cln);
                         break;
                     case 91: //DATE
                         cln = new Column(rsmd.getColumnName(i), DateObject.class);
-                        tab.add(cln);
+                        dataframe.tab.add(cln);
                         break;
                     default:
                         throw new RuntimeException("Something go wrong while parsing SQL to DF");
@@ -136,34 +127,34 @@ public class DataFrameDB extends DataFrame {
             }
             while (rs.next()) {
                 for (int i = 1; i <= columnCount; i++) {
-                    Value val= tab.get(i-1).type.newInstance();
+                    Value val = dataframe.tab.get(i - 1).type.newInstance();
                     val.create(rs.getString(i));
-                    tab.get(i-1).data.add(val);
+                    dataframe.tab.get(i - 1).data.add(val);
                 }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             freeUpResources();
         }
+        return dataframe;
     }
 
-    public DataFrame sqlQueryToDF(String selectQuery){
-        DataFrame df= new DataFrame();
+    public DataFrame sqlQueryToDF(String selectQuery) {
+        System.out.println(selectQuery); //########################################################################
+        DataFrame df = new DataFrame();
         try {
             connect();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(selectQuery);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
-
             for (int i = 1; i <= columnCount; i++) {
                 Column cln;
                 switch (rsmd.getColumnType(i)) {
+                    case -5: //BIGINT do COUNT
                     case 4: //INT
                         cln = new Column(rsmd.getColumnName(i), IntegerObject.class);
                         df.tab.add(cln);
@@ -179,49 +170,339 @@ public class DataFrameDB extends DataFrame {
                         df.tab.add(cln);
                         break;
                     case 91: //DATE
+                    case 93: //timestamp
                         cln = new Column(rsmd.getColumnName(i), DateObject.class);
                         df.tab.add(cln);
                         break;
                     default:
-                        throw new RuntimeException("Something go wrong while parsing SQL to DF");
+                        throw new RuntimeException("Something go wrong while parsing SQL to DF, Type: " + rsmd.getColumnType(i));
                 }
+//                    -7 	BIT
+//                        -6 	TINYINT
+//                        -5 	BIGINT
+//                        -4 	LONGVARBINARY
+//                        -3 	VARBINARY
+//                        -2 	BINARY
+//                        -1 	LONGVARCHAR
+//                    0 	NULL
+//                    1 	CHAR
+//                    2 	NUMERIC
+//                    3 	DECIMAL
+//                    4 	INTEGER
+//                    5 	SMALLINT
+//                    6 	FLOAT
+//                    7 	REAL
+//                    8 	DOUBLE
+//                    12 	VARCHAR
+//                    91 	DATE
+//                    92 	TIME
+//                    93 	TIMESTAMP
+//                    1111  	OTHER
             }
             while (rs.next()) {
                 for (int i = 1; i <= columnCount; i++) {
-                    Value val= tab.get(i-1).type.newInstance();
+                    Value val = df.tab.get(i - 1).type.newInstance();
                     val.create(rs.getString(i));
-                    df.tab.get(i-1).data.add(val);
+                    df.tab.get(i - 1).data.add(val);
                 }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             freeUpResources();
         }
         return df;
     }
 
-    public String createStringHeaderSQL(){
-        String header= new String();
-        for(Column cln : tab){
-            if(cln.type.equals(StringObject.class) ){
-                header= new String( header + cln.name + " VARCHAR(64), ");
+    public String createStringHeaderSQL(DataFrame dataframe) {
+        String header = new String();
+        for (Column cln : dataframe.tab) {
+            if (!header.isEmpty()) {
+                header = new String(header + ", ");
             }
-            else if(cln.type.equals(IntegerObject.class)){
-                header= new String( header +cln.name + " INT, ");
-            }
-            else if(cln.type.equals(DateObject.class)){
-                header= new String( header +cln.name + " DATE, ");
-            }
-            else if(cln.type.equals(FloatObject.class) || cln.type.equals(DoubleObject.class)){
-                header= new String( header +cln.name + " DOUBLE, ");
+            if (cln.type.equals(StringObject.class)) {
+                header = new String(header + cln.name + " VARCHAR(64) ");
+            } else if (cln.type.equals(IntegerObject.class)) {
+                header = new String(header + cln.name + " INT ");
+            } else if (cln.type.equals(DateObject.class)) {
+                header = new String(header + cln.name + " DATE ");
+            } else if (cln.type.equals(FloatObject.class) || cln.type.equals(DoubleObject.class)) {
+                header = new String(header + cln.name + " DOUBLE ");
             }
         }
         return header;
     }
 
+    //DataFrame functions:
+
+    public int size(String tableName) {
+        int size = 0;
+        try {
+            connect();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName);
+            while (rs.next()) {
+                size = Integer.parseInt(rs.getString(1));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            freeUpResources();
+        }
+        return size;
+    }
+
+    public Column get(String colname, String tableName) {
+        DataFrame df = this.sqlQueryToDF("SELECT " + colname + " FROM " + tableName);
+        return df.tab.get(0);
+    }
+
+    public DataFrame get(String[] cols, String tableName) {
+        String colNames = new String();
+        for (String str : cols) {
+            if (colNames.isEmpty()) {
+                colNames = str;
+            } else {
+                colNames = colNames + ", " + str;
+            }
+        }
+        return this.sqlQueryToDF("SELECT " + colNames + " FROM " + tableName);
+    }
+
+    public DataFrame iloc(int indexOfRow, String tableName) {
+        return this.sqlQueryToDF("SELECT * FROM " + tableName + " LIMIT " + (indexOfRow) + ", 1");
+    }
+
+    public DataFrame iloc(int from, int to, String tableName) {
+        int howMany = (to - from);
+        return this.sqlQueryToDF("SELECT * FROM " + tableName + " LIMIT " + (from) + ", " + howMany);
+    }
+
+//groupBy without class
+//    public DataFrame groupBy(String tableName, String[] keys, String function, String[] colsToFunction) {
+//        String keystr = new String();
+//        for (String str : keys) {
+//            if (keystr.isEmpty()) {
+//                keystr = str;
+//            } else {
+//                keystr = keystr + ", " + str;
+//            }
+//        }
+//        String colsWithFunction = new String();
+//        for (String str : colsToFunction) {
+//            colsWithFunction = colsWithFunction + ", " + function + "( " + str + " ) ";
+//        }
+//        return this.sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+//    }
+
+    public groupDB groupBy(String tableName, String[] keys) {
+        return new groupDB(tableName, keys);
+    }
+
+    private HashMap<String, Integer> getColumnTypeMap(String tableName) {
+        HashMap<String, Integer> clnANDtype = new HashMap<>();
+        try {
+            connect();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT * FROM " + tableName + " LIMIT 0;");
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            for (int i = 1; i <= columnCount; i++) {
+                clnANDtype.put(rsmd.getColumnName(i), rsmd.getColumnType(i));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            freeUpResources();
+        }
+        return clnANDtype;
+    }
+
+    public class groupDB {
+        private String[] keys;
+        private String tableName;
+
+        private groupDB(String tableName, String[] keys) {
+            this.tableName = tableName;
+            this.keys = keys;
+        }
+
+        public DataFrame max() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                colsWithFunction = colsWithFunction + ", MAX( " + str + " ) ";
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame min() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                colsWithFunction = colsWithFunction + ", MIN( " + str + " ) ";
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame mean() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            {//delete chars and varchars from column to mean
+                while (clnANDtype.values().remove(1));
+                while (clnANDtype.values().remove(12));
+            }
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy po których było grupowanie z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                if(clnANDtype.get(str)==91){ //DATE
+                    //from_unixtime(avg(unix_timestamp(dt)))
+                    colsWithFunction = colsWithFunction + ", (from_unixtime(avg(unix_timestamp(" + str + ")))) AS  \"avg( " + str + " )\"";
+                }
+                else{
+                    colsWithFunction = colsWithFunction + ", AVG( " + str + " ) ";
+                }
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame std() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            {//delete chars, varchars, time from column to std
+                while (clnANDtype.values().remove(1));
+                while (clnANDtype.values().remove(12));
+                while (clnANDtype.values().remove(91));
+            }
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy po których było grupowanie z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                    colsWithFunction = colsWithFunction + ", STD( " + str + " ) ";
+
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame sum() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            {//delete chars, varchars, time from column to sum
+                while (clnANDtype.values().remove(1));
+                while (clnANDtype.values().remove(12));
+                while (clnANDtype.values().remove(91));
+            }
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy po których było grupowanie z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                colsWithFunction = colsWithFunction + ", SUM( " + str + " ) ";
+
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame var() {
+            HashMap<String, Integer> clnANDtype = getColumnTypeMap(tableName);
+            {//delete chars, varchars, time from column to std
+                while (clnANDtype.values().remove(1));
+                while (clnANDtype.values().remove(12));
+                while (clnANDtype.values().remove(91));
+            }
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+                clnANDtype.remove(str); //usuwanie kluczy po których było grupowanie z kolumn dla ktorych wywoluje sie funkcje
+            }
+
+            Set<String> keysFromMap = clnANDtype.keySet();
+            String colsWithFunction = new String();
+            for (String str : keysFromMap) {
+                colsWithFunction = colsWithFunction + ", VARIANCE( " + str + " ) ";
+
+            }
+
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+        public DataFrame applySQLfun(String function, String[] colsToFunction) {
+            String keystr = new String();
+            for (String str : keys) {
+                if (keystr.isEmpty()) {
+                    keystr = str;
+                } else {
+                    keystr = keystr + ", " + str;
+                }
+            }
+            String colsWithFunction = new String();
+            for (String str : colsToFunction) {
+                colsWithFunction = colsWithFunction + ", " + function + "( " + str + " ) ";
+            }
+            return sqlQueryToDF("SELECT " + keystr + colsWithFunction + " FROM " + tableName + " GROUP BY " + keystr);
+        }
+
+
+    }
 }
