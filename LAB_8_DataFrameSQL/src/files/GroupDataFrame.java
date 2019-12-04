@@ -20,7 +20,7 @@ public class GroupDataFrame implements GroupBy {
     }
 
     @Override
-    public DataFrame max() throws InconsistentTypeException, InstantiationException, ParseException, IllegalAccessException {
+    public DataFrame max() throws InconsistentTypeException{
         DataFrame ret = new DataFrame();
         try {
             for (DataFrame df : data) { //przechodzenie po każdej grupie
@@ -48,11 +48,12 @@ public class GroupDataFrame implements GroupBy {
                 }
                 ret.addAnotherDF(retGroup);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             if(e instanceof InconsistentTypeException){
-                throw e;
+                throw (InconsistentTypeException) e;
             }
-            System.out.println(e.toString());
+                System.out.println(e.toString());
         }
         return ret;
     }
