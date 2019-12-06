@@ -46,7 +46,11 @@ public class Controller {
 
             //tu trzeba raczej poprosić o typy kolumn albo coś, ale to wymagałoby stworzenia praktycznie drugiej aplikacji do projektowania kolumn XD
             // ... więc zostaje na "sztywno"
-            mainDataFrame = new DataFrame(selectedFile.getAbsolutePath(), new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+
+            //mainDataFrame = new DataFrame(selectedFile.getAbsolutePath(), new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+
+            mainDataFrame = new DataFrame(selectedFile.getAbsolutePath(), new Class[]{StringObject.class, IntegerObject.class});
+
             groupedBySthDF = mainDataFrame.clone();
             printCommand("File loaded!");
             transfromDataFrameToTableView(mainDataFrame);
