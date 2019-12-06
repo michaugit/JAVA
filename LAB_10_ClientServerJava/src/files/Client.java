@@ -14,6 +14,7 @@ public class Client  {
     // the server, the port and the username
     private String server;
     private String username;
+    private String writeTo;
     private int port;
 
 
@@ -42,10 +43,8 @@ public class Client  {
             display("Error connectiong to server:" + ec);
             return false;
         }
-
         String msg = "Connection accepted " + socket.getInetAddress() + ":" + socket.getPort();
         display(msg);
-
         /* Creating both Data Stream */
         try
         {
@@ -182,12 +181,20 @@ public class Client  {
 	            else if(msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             }
+	            //select person
+            else if (msg.matches("^WRITE( )+TO( )+#[^#]+#$")){
+                String[] str=msg.split("#");
+                client.sendMessage(new ChatMessage(ChatMessage.WRITE_TO, str[1]));
+            }
 	            else {              // default to ordinary message
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
         // done disconnect
         client.disconnect();
+    }
+    private void setWriter(String str){
+        writeTo=str;
     }
 
     class ListenFromServer extends Thread {

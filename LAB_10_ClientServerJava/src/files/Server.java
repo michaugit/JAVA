@@ -126,21 +126,23 @@ public class Server {
 
 
 
-    /** to broadcast a message to all Clients*/
-    private synchronized void broadcast(String message) {
+    /** to broadcast a message to Clients*/
+    private synchronized void broadcast(String writeTo, String From, String message) {
         // add HH:mm:ss and \n to the message
         String time = sdf.format(new Date());
-        String messageLf = time + " " + message + "\n";
+        String messageLf = time + " " + From + " => "+ message + "\n";
         // display message on console
-        System.out.print(messageLf);
+        System.out.print(time + " TO: " + writeTo + " FROM: " + From + " => "+ message + "\n");
         // we loop in reverse order in case we would have to remove a Client
         // because it has disconnected
-        for (int i = al.size(); --i >= 0; ) {
-            ClientThread ct = al.get(i);
-            // try to write to the Client if it fails remove it from the list
-            if (!ct.writeMsg(messageLf)) {
-                al.remove(i);
-                display("Disconnected Client " + ct.username + " removed from list.");
+        if(writeTo.equals("\\write_to_all_logged_users")) {
+            for (int i = al.size(); --i >= 0; ) {
+                ClientThread ct = al.get(i);
+                // try to write to the Client if it fails remove it from the list
+                if (!ct.writeMsg(messageLf)) {
+                    al.remove(i);
+                    display("Disconnected Client " + ct.username + " removed from list.");
+                }
             }
         }
     }
@@ -181,6 +183,8 @@ public class Server {
         int id;
         // the Username of the Client
         String username;
+        // the selected person whom you writing
+        String writeTo;
         // the only type of message a will receive
         ChatMessage cm;
         // the date I connect
@@ -198,7 +202,11 @@ public class Server {
                 sInput = new ObjectInputStream(socket.getInputStream());
                 // read the username
                 username = (String) sInput.readObject();
+                writeTo = new String("\\write_to_all_logged_users");
                 display(username + " just connected.");
+                this.writeMsg("\nTo select/change person to whom woud you like to write, enter:\n"
+                        +"WRITE TO #NameOfPerson#\n");
+
             } catch (IOException e) {
                 display("Exception creating new Input/output Streams: " + e);
                 return;
@@ -231,7 +239,12 @@ public class Server {
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                        broadcast(username + ": " + message);
+                        broadcast(writeTo,username,message);
+                        break;
+                    case ChatMessage.WRITE_TO:
+                        writeTo=message;
+                        writeMsg("Now you are writing to: " + writeTo + " \n");
+                        //wybrany użytkownik nie jest aktualnie zaologowany, wiadomości trafią do niego natychmiast po tym jak się zaloguje
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
@@ -274,7 +287,7 @@ public class Server {
         /*
          * Write a String to the Client output stream
          */
-        private boolean writeMsg(String msg) {
+        public boolean writeMsg(String msg) {
             // if Client is still connected send the message to it
             if (!socket.isConnected()) {
                 close();
