@@ -312,7 +312,7 @@ public class DataFrame implements Cloneable {
 
     private String getSpacesToPrint(String from) {
         Integer i = 40;
-        String str = new String("          " + "          " +"          " + "          "); //4*10 spacji
+        String str = new String("          " + "          " + "          " + "          "); //4*10 spacji
         if (from.length() > i) {
             throw new RuntimeException("String to print is too long!");
         }
@@ -446,4 +446,37 @@ public class DataFrame implements Cloneable {
         }
         return this;
     }
+
+    public void exportDataFrameToCSV(String outputFilePath) {
+        try {
+            PrintWriter outputCSV = new PrintWriter(outputFilePath);
+            String strLine= new String();
+            try {
+                for(Column cln : tab){
+                    if(!strLine.isEmpty()){
+                        strLine= strLine + ",";
+                    }
+                    strLine= strLine + cln.name;
+                }
+                outputCSV.println(strLine);
+                for (int i = 0; i < this.size(); i++) {
+                    strLine= new String();
+                    for (Column cln : this.tab) {
+                        if (!strLine.isEmpty()) {
+                            strLine = new String(strLine + ",");
+                        }
+                            strLine = new String(strLine + cln.data.get(i).toString());
+                    }
+                    outputCSV.println(strLine);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                outputCSV.close();
+            }
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+    }
+
 }

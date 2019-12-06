@@ -11,7 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateObject extends Value {
-    Date value;
+    public Date value;
 
     @Override
     public DateObject clone() {
@@ -82,6 +82,9 @@ public class DateObject extends Value {
                 ret=true;
             }
         }
+        else{
+            throw new  IllegalArgumentException();
+        }
         return ret;
     }
 
@@ -92,6 +95,9 @@ public class DateObject extends Value {
             if(value.compareTo(((DateObject) x).value)>=0){
                 ret=true;
             }
+        }
+        else{
+            throw new  IllegalArgumentException();
         }
         return ret;
     }

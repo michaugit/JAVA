@@ -1,6 +1,8 @@
-package files;
+package GroupFunctions;
 
-import java.util.ArrayList;
+import GroupFunctions.Applyable;
+import files.*;
+
 import java.util.Collections;
 
 public class Mediana implements Applyable {

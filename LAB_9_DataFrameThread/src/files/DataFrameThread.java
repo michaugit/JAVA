@@ -1,18 +1,27 @@
 package files;
 
-public class DataFrameThread extends Thread{
+import GroupFunctions.Applyable;
+
+public class DataFrameThread extends Thread {
     DataFrame ret;
     DataFrame DF;
     Applyable fun;
-    public  DataFrameThread(DataFrame df, Applyable fun, DataFrame ret){
-        this.DF=df;
-        this.fun=fun;
-        this.ret=ret;
+
+    public DataFrameThread(DataFrame df, Applyable fun, DataFrame ret) {
+        this.DF = df;
+        this.fun = fun;
+        this.ret = ret;
     }
+
     @Override
     public void run() {
-        DataFrame d=fun.apply(DF);
-        synchronized (ret){
+        DataFrame d = null;
+        try {
+            d = fun.apply(DF);
+        } catch (InconsistentTypeException e) {
+            e.printStackTrace();
+        }
+        synchronized (ret) {
             ret.addAnotherDF(d);
         }
     }
