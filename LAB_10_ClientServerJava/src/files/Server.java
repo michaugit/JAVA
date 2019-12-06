@@ -9,8 +9,8 @@ import java.util.*;
 public class Server {
     // a unique ID for each connection
     private static int uniqueId;
-    // an ArrayList to keep the list of the Client
-    private ArrayList<ClientThread> al;
+    // an HashMap to keep the list of the Client
+    private HashMap<Integer, ClientThread> loggedClients;
     // to display time
     private SimpleDateFormat sdf;
     // the port number to listen for connection
@@ -24,8 +24,8 @@ public class Server {
         this.port = port;
         // to display hh:mm:ss
         sdf = new SimpleDateFormat("HH:mm:ss");
-        // ArrayList for the Client list
-        al = new ArrayList<ClientThread>();
+        // HashMap for the Clients
+        loggedClients= new HashMap<Integer, ClientThread>();
     }
 
     /**To run as a console application just open a console window and:
@@ -70,14 +70,14 @@ public class Server {
                 // if I was asked to stop
                 if (!keepGoing) break;
                 ClientThread t = new ClientThread(socket);  // make a thread of it
-                al.add(t);                                  // save it in the ArrayList
+                loggedClients.put(t.id,t);                  // save it in the HashMap
                 t.start();
             }
             // I was asked to stop
             try {
                 serverSocket.close();
-                for (int i = 0; i < al.size(); ++i) {
-                    ClientThread tc = al.get(i);
+                for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+                    ClientThread tc = pair.getValue();
                     try {
                         tc.sInput.close();
                         tc.sOutput.close();
@@ -127,20 +127,20 @@ public class Server {
 
 
     /** to broadcast a message to Clients*/
-    private synchronized void broadcast(String writeTo, String From, String message) {
+    private synchronized void broadcast(Integer id, String message) {
         // add HH:mm:ss and \n to the message
         String time = sdf.format(new Date());
-        String messageLf = time + " " + From + " => "+ message + "\n";
+        String messageLf = time + " " + loggedClients.get(id).username + " => "+ message + "\n";
         // display message on console
-        System.out.print(time + " TO: " + writeTo + " FROM: " + From + " => "+ message + "\n");
+        System.out.print(time + " TO: " + loggedClients.get(id).writeTo + " FROM: " + loggedClients.get(id).username + " => "+ message + "\n");
         // we loop in reverse order in case we would have to remove a Client
         // because it has disconnected
-        if(writeTo.equals("\\write_to_all_logged_users")) {
-            for (int i = al.size(); --i >= 0; ) {
-                ClientThread ct = al.get(i);
+        if(loggedClients.get(id).writeTo.equals("\\write_to_all_logged_users")) {
+            for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+                ClientThread ct = pair.getValue();
                 // try to write to the Client if it fails remove it from the list
                 if (!ct.writeMsg(messageLf)) {
-                    al.remove(i);
+                    loggedClients.remove(pair.getKey());
                     display("Disconnected Client " + ct.username + " removed from list.");
                 }
             }
@@ -163,11 +163,11 @@ public class Server {
 
     synchronized void remove(int id) {
         // scan the array list until we found the Id
-        for (int i = 0; i < al.size(); ++i) {
-            ClientThread ct = al.get(i);
+        for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+            ClientThread ct = pair.getValue();
             // found it
             if (ct.id == id) {
-                al.remove(i);
+                loggedClients.remove(pair.getKey());
                 return;
             }
         }
@@ -239,7 +239,7 @@ public class Server {
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                        broadcast(writeTo,username,message);
+                        broadcast(id,message);
                         break;
                     case ChatMessage.WRITE_TO:
                         writeTo=message;
@@ -252,10 +252,12 @@ public class Server {
                         break;
                     case ChatMessage.WHOISIN:
                         writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
-                        // scan al the users connected
-                        for (int i = 0; i < al.size(); ++i) {
-                            ClientThread ct = al.get(i);
-                            writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
+                        // scan all the users connected
+                        Integer iter=0;
+                        for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+                            ClientThread ct = pair.getValue();
+                            writeMsg((iter + 1) + ") " + ct.username + " since " + ct.date);
+                            iter++;
                         }
                         break;
                 }
