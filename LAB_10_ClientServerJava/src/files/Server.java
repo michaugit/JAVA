@@ -11,6 +11,8 @@ public class Server {
     private static int uniqueId;
     // an HashMap to keep the list of the Client
     private HashMap<Integer, ClientThread> loggedClients;
+    // and HashMap to keep messages for not logged Clients
+    private HashMap<String, ArrayList<String>> messagesToSend;
     // to display time
     private SimpleDateFormat sdf;
     // the port number to listen for connection
@@ -18,20 +20,26 @@ public class Server {
     // the boolean that will be turned of to stop the server
     private boolean keepGoing;
 
-    /**server constructor that receive the port to listen to for connection as parameter  */
+    /**
+     * server constructor that receive the port to listen to for connection as parameter
+     */
     public Server(int port) {
         // the port
         this.port = port;
         // to display hh:mm:ss
         sdf = new SimpleDateFormat("HH:mm:ss");
         // HashMap for the Clients
-        loggedClients= new HashMap<Integer, ClientThread>();
+        loggedClients = new HashMap<>();
+        // HashMap for the messages to send
+        messagesToSend = new HashMap<>();
     }
 
-    /**To run as a console application just open a console window and:
+    /**
+     * To run as a console application just open a console window and:
      * > java Server
      * > java Server portNumber
-     * If the port number is not specified 1500  is used*/
+     * If the port number is not specified 1500  is used
+     */
     public static void main(String[] args) {
         // start server on port 1500 unless a PortNumber is specified
         int portNumber = 1500;
@@ -70,13 +78,13 @@ public class Server {
                 // if I was asked to stop
                 if (!keepGoing) break;
                 ClientThread t = new ClientThread(socket);  // make a thread of it
-                loggedClients.put(t.id,t);                  // save it in the HashMap
+                loggedClients.put(t.id, t);                  // save it in the HashMap
                 t.start();
             }
             // I was asked to stop
             try {
                 serverSocket.close();
-                for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+                for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
                     ClientThread tc = pair.getValue();
                     try {
                         tc.sInput.close();
@@ -108,62 +116,68 @@ public class Server {
         }
     }
 
-    /** Display an event (not a message) to the console*/
+    /**
+     * Display an event (not a message) to the console
+     */
     private void display(String msg) {
         String time = sdf.format(new Date()) + " " + msg;
-            System.out.println(time);
+        System.out.println(time);
     }
 
     // for a client who logoff using the LOGOUT message
 
 
-
-
-
-
-
-
-
-
-
-    /** to broadcast a message to Clients*/
+    /**
+     * to broadcast a message to Clients
+     */
     private synchronized void broadcast(Integer id, String message) {
         // add HH:mm:ss and \n to the message
         String time = sdf.format(new Date());
-        String messageLf = time + " " + loggedClients.get(id).username + " => "+ message + "\n";
+        String messageLf = time + " " + loggedClients.get(id).username + " => " + message + "\n";
         // display message on console
-        System.out.print(time + " TO: " + loggedClients.get(id).writeTo + " FROM: " + loggedClients.get(id).username + " => "+ message + "\n");
-        // we loop in reverse order in case we would have to remove a Client
-        // because it has disconnected
-        if(loggedClients.get(id).writeTo.equals("\\write_to_all_logged_users")) {
-            for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+        System.out.print(time + " TO: " + loggedClients.get(id).writeTo + " FROM: " + loggedClients.get(id).username + " => " + message + "\n");
+        if(loggedClients.get(id).writeTo.equals("\\nobody")){
+            loggedClients.get(id).writeMsg(time + " " +"You must select the receiver of your message!" + "\n\n> " );
+        }
+        else if(loggedClients.get(id).writeTo.equals("\\write_to_all_logged_in_users")) {
+            for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
                 ClientThread ct = pair.getValue();
                 // try to write to the Client if it fails remove it from the list
-                if (!ct.writeMsg(messageLf)) {
+                if (!ct.writeMsg(messageLf + "> ")) {
                     loggedClients.remove(pair.getKey());
                     display("Disconnected Client " + ct.username + " removed from list.");
                 }
             }
+        } else {
+            boolean found = false;
+            for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
+                if (pair.getValue().username.equals(loggedClients.get(id).writeTo)) {
+                    ClientThread ct = pair.getValue();
+                    ct.writeMsg(messageLf + "> ");
+                    if (!ct.writeTo.equals(loggedClients.get(id).username)) {
+                        ct.writeTo = loggedClients.get(id).username;
+                        ct.writeMsg("Now you are writing to: " + ct.writeTo + " \n\n> ");
+                    }
+                    found = true;
+                }
+            }
+            if (!found) {
+                //send after logging in
+                if (messagesToSend.containsKey(loggedClients.get(id).writeTo)) {
+                    messagesToSend.get(loggedClients.get(id).writeTo).add(messageLf);
+                } else {
+                    messagesToSend.put(loggedClients.get(id).writeTo, new ArrayList<String>());
+                    messagesToSend.get(loggedClients.get(id).writeTo).add(messageLf);
+                }
+            }
         }
+
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     synchronized void remove(int id) {
         // scan the array list until we found the Id
-        for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+        for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
             ClientThread ct = pair.getValue();
             // found it
             if (ct.id == id) {
@@ -173,7 +187,9 @@ public class Server {
         }
     }
 
-    /** One instance of this thread will run for each client*/
+    /**
+     * One instance of this thread will run for each client
+     */
     class ClientThread extends Thread {
         // the socket where to listen/talk
         Socket socket;
@@ -202,10 +218,21 @@ public class Server {
                 sInput = new ObjectInputStream(socket.getInputStream());
                 // read the username
                 username = (String) sInput.readObject();
-                writeTo = new String("\\write_to_all_logged_users");
+                writeTo = new String("\\nobody");
                 display(username + " just connected.");
+                if (messagesToSend.containsKey(username)) {
+                    this.writeMsg("\nMessages sent to you while you were not logged in:\n");
+                    ArrayList<String> toDeleteFromHashMap = new ArrayList<>();
+                    for (String str : messagesToSend.get(username)) {
+                        this.writeMsg("> " + str);
+                        toDeleteFromHashMap.add(str);
+                    }
+                    for (String str : toDeleteFromHashMap) {
+                        messagesToSend.values().remove(str);
+                    }
+                }
                 this.writeMsg("\nTo select/change person to whom woud you like to write, enter:\n"
-                        +"WRITE TO #NameOfPerson#\n");
+                        + "WRITE TO #NameOfPerson#\n\n");
 
             } catch (IOException e) {
                 display("Exception creating new Input/output Streams: " + e);
@@ -239,12 +266,11 @@ public class Server {
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                        broadcast(id,message);
+                        broadcast(id, message);
                         break;
                     case ChatMessage.WRITE_TO:
-                        writeTo=message;
-                        writeMsg("Now you are writing to: " + writeTo + " \n");
-                        //wybrany użytkownik nie jest aktualnie zaologowany, wiadomości trafią do niego natychmiast po tym jak się zaloguje
+                        writeTo = message;
+                        writeMsg("Now you are writing to: " + writeTo + " \n\n> ");
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
@@ -253,8 +279,8 @@ public class Server {
                     case ChatMessage.WHOISIN:
                         writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
                         // scan all the users connected
-                        Integer iter=0;
-                        for(Map.Entry<Integer,ClientThread> pair: loggedClients.entrySet()){
+                        Integer iter = 0;
+                        for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
                             ClientThread ct = pair.getValue();
                             writeMsg((iter + 1) + ") " + ct.username + " since " + ct.date);
                             iter++;
