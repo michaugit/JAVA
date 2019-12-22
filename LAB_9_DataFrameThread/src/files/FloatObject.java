@@ -1,6 +1,9 @@
 package files;
 
-public class FloatObject extends Value {
+import java.io.Serializable;
+
+public class FloatObject extends Value implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
 
     public Float value;
 

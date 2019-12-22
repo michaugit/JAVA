@@ -4,13 +4,15 @@ package files;
 import org.omg.CORBA.DATA_CONVERSION;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class DateObject extends Value {
+public class DateObject extends Value implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     public Date value;
 
     @Override

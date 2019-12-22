@@ -6,7 +6,8 @@ import java.io.*;
 import java.util.*;
 
 
-public class DataFrame implements Cloneable {
+public class DataFrame implements Cloneable, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     public ArrayList<Column> tab;
     protected Integer size;
 

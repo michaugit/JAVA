@@ -1,6 +1,9 @@
 package files;
 
-public class DoubleObject extends Value {
+import java.io.Serializable;
+
+public class DoubleObject extends Value implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
 
     public Double value;
 

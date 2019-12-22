@@ -1,11 +1,13 @@
 package files;
 
 import javax.xml.crypto.Data;
+import java.io.Serializable;
 import java.sql.*;
 import java.text.ParseException;
 import java.util.*;
 
-public class DataFrameDB {
+public class DataFrameDB implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     public Connection conn = null;
     public Statement stmt = null;
     public ResultSet rs = null;

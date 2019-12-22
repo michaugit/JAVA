@@ -2,6 +2,7 @@ package files;
 
 import GroupFunctions.*;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,7 +11,8 @@ import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class GroupDataFrame implements GroupBy {
+public class GroupDataFrame implements GroupBy, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     LinkedList<DataFrame> data;
     static final int MAX_Threads= Runtime.getRuntime().availableProcessors();
 

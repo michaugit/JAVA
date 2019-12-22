@@ -3,10 +3,12 @@ package files;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class SparseDataFrame extends DataFrame {
+public class SparseDataFrame extends DataFrame implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
 
     public SparseDataFrame(String[] colName, Class<? extends Value>[] type, Value hide){
         super(colName, type);

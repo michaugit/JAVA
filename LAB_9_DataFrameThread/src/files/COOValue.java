@@ -2,7 +2,10 @@ package files;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class COOValue extends Value {
+import java.io.Serializable;
+
+public class COOValue extends Value implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     Integer index;
     Value value;
 

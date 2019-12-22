@@ -1,6 +1,9 @@
 package files;
 
-public class IntegerObject extends Value {
+import java.io.Serializable;
+
+public class IntegerObject extends Value implements Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     public Integer value;
 
     public IntegerObject clone(){
