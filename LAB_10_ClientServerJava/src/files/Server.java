@@ -41,7 +41,7 @@ public class Server {
      * If the port number is not specified 1500  is used
      */
     public static void main(String[] args) {
-        // start server on port 1500 unless a PortNumber is specified
+        // start server onException reading Streams port 1500 unless a PortNumber is specified
         int portNumber = 1500;
         switch (args.length) {
             case 1:

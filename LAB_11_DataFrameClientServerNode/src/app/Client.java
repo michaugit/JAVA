@@ -1,78 +1,61 @@
-package files;
+package app;
+import files.*;
 
 import java.net.*;
 import java.io.*;
 import java.util.*;
 
+// E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
 
+
+// java -cp E:\Java\GIT\LAB_9_DataFrameThread\out\artifacts\LAB_9_DataFrameThread_jar\LAB_9_DataFrameThread.jar; app.Client
 public class Client {
     // for I/O
     private ObjectInputStream sInput;       // to read from the socket
     private ObjectOutputStream sOutput;     // to write on the socket
     private Socket socket;
 
-    // the server, the port and the username
+    // the server, the port
+    private DataFrame dataframe;
     private String server;
-    private String username;
-    private String writeTo;
     private int port;
 
-
-    /**
-     * Constructor called by console mode
-     * server: the server address
-     * port: the port number
-     * username: the username
-     */
-
-    Client(String server, int port, String username) {
+    Client(String server, int port) {
         this.server = server;
         this.port = port;
-        this.username = username;
+        System.out.println("Loading dataframe from csv, please wait!");
+        dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+        System.out.println("Dataframe loaded!");
     }
 
     /**
      * To start the Client in console mode use one of the following command
      * > java Client
-     * > java Client username
-     * > java Client username portNumber
-     * > java Client username portNumber serverAddress
+     * > java Client portNumber
+     * > java Client portNumber serverAddress
      * at the console prompt
      * If the portNumber is not specified 1500 is used
      * If the serverAddress is not specified "localHost" is used
-     * If the username is not specified "Anonymous" is used
-     * > java Client
-     * is equivalent to
-     * > java Client Anonymous 1500 localhost
-     * are eqquivalent
-     * <p>
-     * In console mode, if an error occurs the program simply stops
-     * when a GUI id used, the GUI is informed of the disconnection
      */
+
     public static void main(String[] args) {
         // default values
         int portNumber = 1500;
         String serverAddress = "localhost";
-        String userName = "Anonymous";
 
-        // depending of the number of arguments provided we fall through
         switch (args.length) {
             // > javac Client username portNumber serverAddr
-            case 3:
-                serverAddress = args[2];
-                // > javac Client username portNumber
             case 2:
+                serverAddress = args[1];
+                // > javac Client username portNumber
+            case 1:
                 try {
-                    portNumber = Integer.parseInt(args[1]);
+                    portNumber = Integer.parseInt(args[0]);
                 } catch (Exception e) {
                     System.out.println("Invalid port number.");
-                    System.out.println("Usage is: > java Client [username] [portNumber] [serverAddress]");
+                    System.out.println("Usage is: > java Client [portNumber] [serverAddress]");
                     return;
                 }
-                // > javac Client username
-            case 1:
-                userName = args[0];
-                // > java Client
             case 0:
                 break;
             // invalid number of arguments
@@ -80,56 +63,65 @@ public class Client {
                 System.out.println("Usage is: > java Client [username] [portNumber] {serverAddress]");
                 return;
         }
+
         // create the Client object
-        Client client = new Client(serverAddress, portNumber, userName);
+        Client client = new Client(serverAddress, portNumber);
         // test if we can start the connection to the Server
-        // if it failed nothing we can do
         if (!client.start()) return;
 
         // wait for messages from user
         Scanner scan = new Scanner(System.in);
+
         // loop forever for message from the user
         while (true) {
-            System.out.print("> ");
             // read message from user
+            System.out.print("> ");
             String msg = scan.nextLine();
             // logout if message is LOGOUT
             if (msg.equalsIgnoreCase("LOGOUT")) {
-                client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+                //client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
                 // break to do the disconnect
                 break;
-            }
-            // message WhoIsIn
-            else if (msg.equalsIgnoreCase("WHOISIN")) {
-                client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
-            }
-            //select person
-            else if (msg.matches("^WRITE( )+TO( )+#[^#]+#$")) {
-                String[] str = msg.split("#");
-                client.sendMessage(new ChatMessage(ChatMessage.WRITE_TO, str[1]));
-            } else {              // default to ordinary message
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
+            } else {
+                System.out.println("MESSAGE TO SENT TO THE SERVER: " + msg);
+                if(msg.matches("^groupby\\((\"[^\"]+\")(,\"[^\"]+\")*\\)\\..+\\(\\)$" )){
+                    String[] tmp= msg.split("\\.");
+                    String keysTmp= (tmp[0].substring(8,tmp[0].length()-1)).replace("\"","");
+                    String[] keys= keysTmp.split(",");
+                    String fun= tmp[1];
+                    GroupDataFrame GDF= client.dataframe.groupBy(keys);
+                    client.sendToServer(new ServerRequestGDF(fun,GDF));
+                    System.out.println("Request was sent to server!");
+                }
+                else{
+                    System.out.println("Invalid request");
+                    System.out.println("Usage is : > groupby(\"[something]\").[function]()");
+                }
+                // tutaj musimy zrobić severrequestGDF czyli dostajemy np stringa groupby("id").max()
+                // rozdzielić splitem po kropce odczytaj jaką funkcje zastosowac i po czym pogrupować
+                // posplitować po |"|  "1 pole","3 pole","5 pole" itd itd
+                // po czym uzyskać coś w stylu ServerRequestGDF=| funkcja | GroupedDataFrame |
             }
         }
+
         // done disconnect
         client.disconnect();
     }
 
-    /**
-     * To start the dialog
-     */
+    /**To start the dialog*/
     public boolean start() {
         // try to connect to the server
         try {
             socket = new Socket(server, port);
         }
-        // if it failed not much I can so
         catch (Exception ec) {
             display("Error connectiong to server:" + ec);
             return false;
         }
+
         String msg = "Connection accepted " + socket.getInetAddress() + ":" + socket.getPort();
         display(msg);
+
         /* Creating both Data Stream */
         try {
             sInput = new ObjectInputStream(socket.getInputStream());
@@ -141,10 +133,9 @@ public class Client {
 
         // creates the Thread to listen from the server
         new ListenFromServer().start();
-        // Send our username to the server this is the only message that we
-        // will send as a String. All other messages will be ChatMessage objects
+
         try {
-            sOutput.writeObject(username);
+            sOutput.writeObject("I am Client");
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
             disconnect();
@@ -158,10 +149,8 @@ public class Client {
         System.out.println(msg);      // println in console
     }
 
-    /**
-     * To send a message to the server
-     */
-    void sendMessage(ChatMessage msg) {
+    /** To send a message to the server */
+    void sendToServer(ServerRequestGDF msg) {
         try {
             sOutput.writeObject(msg);
         } catch (IOException e) {
@@ -169,10 +158,7 @@ public class Client {
         }
     }
 
-    /**
-     * When something goes wrong
-     * Close the Input/Output streams and disconnect not much to do in the catch clause
-     */
+    /** When something goes wrong => Close the Input/Output streams and disconnect not much to do in the catch clause */
     private void disconnect() {
         try {
             if (sInput != null) sInput.close();
@@ -188,26 +174,19 @@ public class Client {
         } // not much else I can do
     }
 
-    private void setWriter(String str) {
-        writeTo = str;
-    }
-
     class ListenFromServer extends Thread {
-
         public void run() {
-
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
-                    //console mode print the message and add back the prompt
-                    System.out.print(msg);
-//                        System.out.print("> ");
+                    display(msg);
                 } catch (IOException e) {
                     display("Server has close the connection: " + e);
+                    e.printStackTrace();
                     System.exit(0);
                 }
-                // can't happen with a String object but need the catch anyhow
                 catch (ClassNotFoundException e2) {
+                    e2.printStackTrace();
                 }
             }
         }
