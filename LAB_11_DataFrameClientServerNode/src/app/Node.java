@@ -8,8 +8,8 @@ import java.util.*;
 
 // E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
 
-// java -cp E:\Java\GIT\LAB_9_DataFrameThread\out\artifacts\LAB_9_DataFrameThread_jar\LAB_9_DataFrameThread.jar; app.Client
-public class Client {
+// java -cp E:\Java\GIT\LAB_9_DataFrameThread\out\artifacts\LAB_9_DataFrameThread_jar\LAB_9_DataFrameThread.jar; app.Node
+public class Node {
     // for I/O
     private ObjectInputStream sInput;       // to read from the socket
     private ObjectOutputStream sOutput;     // to write on the socket
@@ -20,13 +20,9 @@ public class Client {
     private String server;
     private int port;
 
-    Client(String server, int port) {
+    Node(String server, int port) {
         this.server = server;
         this.port = port;
-        System.out.println("Loading dataframe from csv, please wait!");
-        dataframe = new DataFrame();
-        //dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
-        System.out.println("Dataframe loaded!");
     }
 
     /**
@@ -66,9 +62,9 @@ public class Client {
         }
 
         // create the Client object
-        Client client = new Client(serverAddress, portNumber);
+        Node node = new Node(serverAddress, portNumber);
         // test if we can start the connection to the Server
-        if (!client.start()) return;
+        if (!node.start()) return;
 
         // wait for messages from user
         Scanner scan = new Scanner(System.in);
@@ -84,24 +80,11 @@ public class Client {
                 // break to do the disconnect
                 break;
             } else {
-                System.out.println("MESSAGE TO SENT TO THE SERVER: " + msg);
-                if (msg.matches("^groupby\\((\"[^\"]+\")(,\"[^\"]+\")*\\)\\..+\\(\\)$")) {
-                    String[] tmp = msg.split("\\.");
-                    String keysTmp = (tmp[0].substring(8, tmp[0].length() - 1)).replace("\"", "");
-                    String[] keys = keysTmp.split(",");
-                    String fun = tmp[1];
-                    GroupDataFrame GDF = client.dataframe.groupBy(keys);
-                    client.sendToServer(new ServerRequestGDF(fun, GDF));
-                    System.out.println("Request was sent to server!");
-                } else {
-                    System.out.println("Invalid request");
-                    System.out.println("Usage is : > groupby(\"[something]\").[function]()");
-                }
+                System.out.println("Incorrect request, you can only logout by LOGOUT");
             }
         }
-
         // done disconnect
-        client.disconnect();
+        node.disconnect();
     }
 
     /**
@@ -132,7 +115,7 @@ public class Client {
         new ListenFromServer().start();
 
         try {
-            sOutput.writeObject("CLIENT");
+            sOutput.writeObject("NODE");
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
             disconnect();
@@ -175,12 +158,16 @@ public class Client {
         } // not much else I can do
     }
 
-    class ListenFromServer extends Thread { //trzeba nasłuchiwać stringow albo dfa
+    class ListenFromServer extends Thread {
         public void run() {
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
                     display(msg);
+                    try {
+                        sOutput.writeObject("Obliczyłem :D");
+                    }
+                    catch(Exception exc){}
                 } catch (IOException e) {
                     display("Server has close the connection: " + e);
                     e.printStackTrace();

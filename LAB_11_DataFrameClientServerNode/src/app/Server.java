@@ -1,5 +1,7 @@
 package app;
 
+import files.DataFrame;
+
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
@@ -70,24 +72,25 @@ public class Server {
             while (keepGoing) {
                 display("Server is waiting on port " + port + ".");
                 Socket socket = serverSocket.accept();      // accept connection
+                System.out.println("Thread trying to create Object Input/Output Streams");
                 try {
                     ObjectOutputStream sOutput = new ObjectOutputStream(socket.getOutputStream());
                     ObjectInputStream sInput = new ObjectInputStream(socket.getInputStream());
                     String who = (String) sInput.readObject();
                     display(who + " just connected");
-                    sOutput.flush();
-                    sInput.reset();
-//                    sOutput.reset();
-//                    sInput.reset();
-//                    if (who.equalsIgnoreCase("CLIENT")) {
-                        ClientThread ct = new ClientThread(socket);
-//                        clients.put(ct.id,ct);
+
+                    if (who.equalsIgnoreCase("CLIENT")) {
+                        ClientThread ct = new ClientThread(socket, sOutput, sInput);
+                        clients.put(ct.id, ct);
                         ct.start();
-//                    } else if (who.equalsIgnoreCase("NODE")) {
-//                        NodeThread nt = new NodeThread(socket);
-////                        nodes.put(nt.id,nt);
-//                        nt.start();
-//                    }
+                    } else if (who.equalsIgnoreCase("NODE")) {
+                        NodeThread nt = new NodeThread(socket, sOutput, sInput);
+                        nodes.put(nt.id, nt);
+                        nt.start();
+                    }
+                } catch (IOException e) {
+                    display("Exception creating new Input/output Streams: " + e);
+                    return;
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -146,25 +149,34 @@ public class Server {
         String time = sdf.format(new Date());
     }
 
-
     synchronized void remove(int id) {
-//        // scan the maps until we found the Id (first clients, because we rather not remove nodes)
-//        for (Map.Entry<Integer, ClientThread> pair : clients.entrySet()) {
-//            ClientThread ct = pair.getValue();
-//            // found it
-//            if (ct.id == id) {
-//                clients.remove(pair.getKey());
-//                return;
-//            }
-//        }
-//        for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
-//            NodeThread nt = pair.getValue();
-//            // found it
-//            if (nt.id == id) {
-//                clients.remove(pair.getKey());
-//                return;
-//            }
-//        }
+        // scan the maps until we found the Id (first clients, because we rather not remove nodes)
+        for (Map.Entry<Integer, ClientThread> pair : clients.entrySet()) {
+            ClientThread ct = pair.getValue();
+            // found it
+            if (ct.id == id) {
+                clients.remove(pair.getKey());
+                return;
+            }
+        }
+        for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
+            NodeThread nt = pair.getValue();
+            // found it
+            if (nt.id == id) {
+                clients.remove(pair.getKey());
+                return;
+            }
+        }
+    }
+
+    synchronized void divideGDFbetweenNodes(ServerRequestGDF srGDF, Integer clientID){
+        //rozczytaj ile masz nodeow i podzielić srGDF na tyle nrGDF jesli nie ma żadnego odesłać że ups ale nie nie ma zadnych nodow
+        display("rozdzielam na: " + nodes.size() + " node'ow");
+
+        for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
+            pair.getValue().writeMsg("hehe przydzielam ci zadanie od klienta o ID: " + clientID);
+        }
+
     }
 
     /**
@@ -175,28 +187,22 @@ public class Server {
         Socket socket;
         ObjectInputStream sInput;
         ObjectOutputStream sOutput;
-        Integer id;     // my unique id
-        String date;    // the date I connect
+        Integer id;     // unique id
+        String date;    // the date connect
+        DataFrame dfToReturn;
         ServerRequestGDF requestGDF;
 
 //        // the only type of message a will receive
 //        ChatMessage cm;
 
 
-        ClientThread(Socket socket) {
+        ClientThread(Socket socket, ObjectOutputStream sOutput, ObjectInputStream sInput) {
             // a unique id
             id = ++uniqueId;
             this.socket = socket;
             /* Creating both Data Stream */
-            System.out.println("Thread trying to create Object Input/Output Streams");
-            try {
-                // create output first
-                sOutput = new ObjectOutputStream(socket.getOutputStream());
-                sInput = new ObjectInputStream(socket.getInputStream());
-            } catch (IOException e) {
-                display("Exception creating new Input/output Streams: " + e);
-                return;
-            }
+            this.sInput = sInput;
+            this.sOutput = sOutput;
 
             date = new Date().toString() + "\n";
         }
@@ -208,14 +214,13 @@ public class Server {
             while (keepGoing) {
                 // read a GDF (which is an object)
                 try {
-                    Object obj= sInput.readObject();
-                    if(obj instanceof String) {
+                    Object obj = sInput.readObject();
+                    if (obj instanceof String) {
                         display((String) obj);
-                    }
-                    else if(obj instanceof  ServerRequestGDF){
+                    } else if (obj instanceof ServerRequestGDF) {
                         display("Dostałem ServerRequest");
-                    }
-                    else{
+                        divideGDFbetweenNodes((ServerRequestGDF) obj, id );
+                    } else {
                         display("WHAT IS THIS!!!");
                     }
                 } catch (IOException e) {
@@ -256,7 +261,7 @@ public class Server {
             // connected Clients
             remove(id);
             close();
-    }
+        }
 
         // try to close everything
         private void close() {
@@ -276,7 +281,9 @@ public class Server {
             }
         }
 
-        /** Write to the Client output stream */ //narazie to tylko string a potem docelowo ma byc dataframe
+        /**
+         * Write to the Client output stream
+         */ //narazie to tylko string a potem docelowo ma byc dataframe
         public boolean writeMsg(String msg) {
             // if Client is still connected send the message to it
             if (!socket.isConnected()) {
@@ -294,14 +301,101 @@ public class Server {
             }
             return true;
         }
-}
-
-/**
- * One instance of this thread will run for each node
- */
-class NodeThread extends Thread {
-    NodeThread(Socket socket) {
-
     }
-}
+
+    /**
+     * One instance of this thread will run for each node
+     */
+    class NodeThread extends Thread {
+        // the socket where to listen/talk
+        Socket socket;
+        ObjectInputStream sInput;
+        ObjectOutputStream sOutput;
+        Integer id;     // unique id
+        String date;    // the date  connect
+        ServerRequestGDF requestGDF;
+
+//        // the only type of message a will receive
+//        ChatMessage cm;
+
+
+        NodeThread(Socket socket, ObjectOutputStream sOutput, ObjectInputStream sInput) {
+            // a unique id
+            id = ++uniqueId;
+            this.socket = socket;
+            /* Creating both Data Stream */
+            this.sInput = sInput;
+            this.sOutput = sOutput;
+
+            date = new Date().toString() + "\n";
+        }
+
+        // what will run forever
+        public void run() {
+            // to loop until LOGOUT
+            boolean keepGoing = true;
+            while (keepGoing) {
+                // read a GDF (which is an object)
+                try {
+                    Object obj = sInput.readObject();
+                    if (obj instanceof String) {
+                        display((String) obj);
+                    } else if (obj instanceof ServerRequestGDF) {
+                        display("Dostałem DataFrame'a");
+                    } else {
+                        display("WHAT IS THIS!!!");
+                    }
+                } catch (IOException e) {
+                    display("Node id: " + id + " Exception reading Streams: " + e);
+                    break;
+                } catch (ClassNotFoundException e2) {
+                    break;
+                }
+                display("Server has receive DataFrame from Node: " + this.id);
+            }
+            // remove myself from the arrayList containing the list of the
+            // connected Clients
+            remove(id);
+            close();
+        }
+
+        // try to close everything
+        private void close() {
+            // try to close the connection
+            try {
+                if (sOutput != null) sOutput.close();
+            } catch (Exception e) {
+            }
+            try {
+                if (sInput != null) sInput.close();
+            } catch (Exception e) {
+            }
+            ;
+            try {
+                if (socket != null) socket.close();
+            } catch (Exception e) {
+            }
+        }
+
+        /**
+         * Write to the Client output stream
+         */ //narazie to tylko string a potem docelowo ma byc GDF
+        public boolean writeMsg(String msg) {
+            // if Client is still connected send the message to it
+            if (!socket.isConnected()) {
+                close();
+                return false;
+            }
+            // write the message to the stream
+            try {
+                sOutput.writeObject(msg);
+            }
+            // if an error occurs, do not abort just inform the user
+            catch (IOException e) {
+                display("Error sending message to " + id);
+                display(e.toString());
+            }
+            return true;
+        }
+    }
 }
