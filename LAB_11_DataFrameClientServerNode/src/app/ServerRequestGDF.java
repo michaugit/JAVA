@@ -1,4 +1,5 @@
 package app;
+
 import files.*;
 
 import java.io.Serializable;
@@ -9,16 +10,17 @@ public class ServerRequestGDF implements Serializable {
     protected String function;
     protected GroupDataFrame groupedDF;
 
-    public ServerRequestGDF(String fun, GroupDataFrame gDF){
-        this.function=fun;
-        this.groupedDF=gDF;
+    public ServerRequestGDF(String fun, GroupDataFrame gDF) {
+        this.function = fun;
+        this.groupedDF = gDF;
     }
+
     //getters
-    String getFunction(){
+    String getFunction() {
         return function;
     }
 
-    GroupDataFrame getGroupedDF(){
+    GroupDataFrame getGroupedDF() {
         return groupedDF;
     }
 }

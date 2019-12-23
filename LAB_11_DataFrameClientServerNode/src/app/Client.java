@@ -1,4 +1,5 @@
 package app;
+
 import files.*;
 
 import java.net.*;
@@ -6,7 +7,6 @@ import java.io.*;
 import java.util.*;
 
 // E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
-
 
 // java -cp E:\Java\GIT\LAB_9_DataFrameThread\out\artifacts\LAB_9_DataFrameThread_jar\LAB_9_DataFrameThread.jar; app.Client
 public class Client {
@@ -24,7 +24,8 @@ public class Client {
         this.server = server;
         this.port = port;
         System.out.println("Loading dataframe from csv, please wait!");
-        dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+        dataframe = new DataFrame();
+        //dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
         System.out.println("Dataframe loaded!");
     }
 
@@ -84,16 +85,15 @@ public class Client {
                 break;
             } else {
                 System.out.println("MESSAGE TO SENT TO THE SERVER: " + msg);
-                if(msg.matches("^groupby\\((\"[^\"]+\")(,\"[^\"]+\")*\\)\\..+\\(\\)$" )){
-                    String[] tmp= msg.split("\\.");
-                    String keysTmp= (tmp[0].substring(8,tmp[0].length()-1)).replace("\"","");
-                    String[] keys= keysTmp.split(",");
-                    String fun= tmp[1];
-                    GroupDataFrame GDF= client.dataframe.groupBy(keys);
-                    client.sendToServer(new ServerRequestGDF(fun,GDF));
+                if (msg.matches("^groupby\\((\"[^\"]+\")(,\"[^\"]+\")*\\)\\..+\\(\\)$")) {
+                    String[] tmp = msg.split("\\.");
+                    String keysTmp = (tmp[0].substring(8, tmp[0].length() - 1)).replace("\"", "");
+                    String[] keys = keysTmp.split(",");
+                    String fun = tmp[1];
+                    GroupDataFrame GDF = client.dataframe.groupBy(keys);
+                    client.sendToServer(new ServerRequestGDF(fun, GDF));
                     System.out.println("Request was sent to server!");
-                }
-                else{
+                } else {
                     System.out.println("Invalid request");
                     System.out.println("Usage is : > groupby(\"[something]\").[function]()");
                 }
@@ -108,13 +108,14 @@ public class Client {
         client.disconnect();
     }
 
-    /**To start the dialog*/
+    /**
+     * To start the dialog
+     */
     public boolean start() {
         // try to connect to the server
         try {
             socket = new Socket(server, port);
-        }
-        catch (Exception ec) {
+        } catch (Exception ec) {
             display("Error connectiong to server:" + ec);
             return false;
         }
@@ -135,7 +136,7 @@ public class Client {
         new ListenFromServer().start();
 
         try {
-            sOutput.writeObject("I am Client");
+            sOutput.writeObject("CLIENT");
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
             disconnect();
@@ -149,7 +150,9 @@ public class Client {
         System.out.println(msg);      // println in console
     }
 
-    /** To send a message to the server */
+    /**
+     * To send a message to the server
+     */
     void sendToServer(ServerRequestGDF msg) {
         try {
             sOutput.writeObject(msg);
@@ -158,7 +161,9 @@ public class Client {
         }
     }
 
-    /** When something goes wrong => Close the Input/Output streams and disconnect not much to do in the catch clause */
+    /**
+     * When something goes wrong => Close the Input/Output streams and disconnect not much to do in the catch clause
+     */
     private void disconnect() {
         try {
             if (sInput != null) sInput.close();
@@ -184,8 +189,7 @@ public class Client {
                     display("Server has close the connection: " + e);
                     e.printStackTrace();
                     System.exit(0);
-                }
-                catch (ClassNotFoundException e2) {
+                } catch (ClassNotFoundException e2) {
                     e2.printStackTrace();
                 }
             }
