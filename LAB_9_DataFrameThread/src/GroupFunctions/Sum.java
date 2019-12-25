@@ -2,7 +2,10 @@ package GroupFunctions;
 
 import files.*;
 
-public class Sum implements Applyable {
+import java.io.Serializable;
+
+public class Sum implements Applyable, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
 
     @Override
     public DataFrame apply(DataFrame df) throws InconsistentTypeException {

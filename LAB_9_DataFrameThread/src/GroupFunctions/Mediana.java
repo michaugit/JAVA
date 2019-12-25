@@ -3,9 +3,12 @@ package GroupFunctions;
 import GroupFunctions.Applyable;
 import files.*;
 
+import java.io.Serializable;
 import java.util.Collections;
 
-public class Mediana implements Applyable {
+public class Mediana implements Applyable, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
+
     @Override
     public DataFrame apply(DataFrame group) {
         DataFrame ret = new DataFrame();

@@ -13,10 +13,10 @@ import java.util.concurrent.Executors;
 
 public class GroupDataFrame implements GroupBy, Serializable {
     protected static final long serialVersionUID = 1112122200L;
-    LinkedList<DataFrame> data;
+    protected LinkedList<DataFrame> data;
     static final int MAX_Threads= Runtime.getRuntime().availableProcessors();
 
-    GroupDataFrame() {
+    public GroupDataFrame() {
         data = new LinkedList<DataFrame>();
     }
 
@@ -24,6 +24,12 @@ public class GroupDataFrame implements GroupBy, Serializable {
         for (DataFrame df : data) {
             df.print();
         }
+    }
+    public Integer getSize(){
+        return data.size();
+    }
+    public LinkedList<DataFrame> getData(){
+        return data;
     }
 
 

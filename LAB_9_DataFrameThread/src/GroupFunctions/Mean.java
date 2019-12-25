@@ -2,12 +2,13 @@ package GroupFunctions;
 
 import files.*;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Mean implements Applyable {
-
+public class Mean implements Applyable, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
     @Override
     public DataFrame apply(DataFrame df) throws InconsistentTypeException {
 

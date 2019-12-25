@@ -1,10 +1,13 @@
 package files;
 
 
+import GroupFunctions.Max;
 import GroupFunctions.Mediana;
 
 import javax.print.attribute.standard.Media;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
@@ -162,136 +165,137 @@ public class Main {
 //        df2.print();
 //        df3.print();
 
-
-/** */
-/** Do measurements for each function and export results to csv */
-        {
-            DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
-            DataFrame results = new DataFrame(new String[]{"METHOD TYPE (repeated 100x)", "TIME (ms)"}, new Class[]{StringObject.class, IntegerObject.class});
-            {
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).maxWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Max Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).max();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Max"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).minWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Min Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).min();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Min"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).meanWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mean Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).mean();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mean"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).stdWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Std Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).std();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Std"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).varWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Var Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).var();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Var"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).sumWithThreads();
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Sum Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).sum();
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Sum"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-                {
-                    long startWithThreads = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).applywithThreads(new Mediana());
-                    }
-                    long stopWithThreads = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mediana Threads"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
-
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
-                        df.groupBy(new String[]{"id"}).apply(new Mediana());
-                    }
-                    long stop = System.currentTimeMillis();
-                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mediana"));
-                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
-                }
-            }
-
-            results.exportDataFrameToCSV("C:\\Users\\resta\\Desktop\\results.csv");
-        }
+//
+///** */
+///** Do measurements for each function and export results to csv */
+//        {
+//            DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+//            DataFrame results = new DataFrame(new String[]{"METHOD TYPE (repeated 100x)", "TIME (ms)"}, new Class[]{StringObject.class, IntegerObject.class});
+//            {
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).maxWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Max Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).max();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Max"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).minWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Min Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).min();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Min"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).meanWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mean Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).mean();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mean"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).stdWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Std Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).std();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Std"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).varWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Var Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).var();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Var"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+////                {
+////                    long startWithThreads = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).sumWithThreads();
+////                    }
+////                    long stopWithThreads = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Sum Threads"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+////
+////                    long start = System.currentTimeMillis();
+////                    for (int i = 0; i < 100; i++) {
+////                        df.groupBy(new String[]{"id"}).sum();
+////                    }
+////                    long stop = System.currentTimeMillis();
+////                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Sum"));
+////                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+////                }
+//                {
+//                    long startWithThreads = System.currentTimeMillis();
+//                    for (int i = 0; i < 100; i++) {
+//                        df.groupBy(new String[]{"id"}).applywithThreads(new Mediana());
+//                    }
+//                    long stopWithThreads = System.currentTimeMillis();
+//                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mediana Threads"));
+//                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stopWithThreads - startWithThreads)).toString()));
+//
+//                    long start = System.currentTimeMillis();
+//                    for (int i = 0; i < 100; i++) {
+//                        df.groupBy(new String[]{"id"}).apply(new Mediana());
+//                    }
+//                    long stop = System.currentTimeMillis();
+//                    results.get("METHOD TYPE (repeated 100x)").data.add(results.get("METHOD TYPE (repeated 100x)").type.newInstance().create("Mediana"));
+//                    results.get("TIME (ms)").data.add(results.get("TIME (ms)").type.newInstance().create(((Long) (stop - start)).toString()));
+//                }
+//            }
+//            results.print();
+//
+////            results.exportDataFrameToCSV("C:\\Users\\resta\\Desktop\\results.csv");
+//        }
 
 
 //        DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
@@ -309,5 +313,43 @@ public class Main {
 //        long stop = System.currentTimeMillis();
 //        System.out.println("Time without threads: " + (stop-start));
 //
+
+
+
+//        DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group2.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+//
+//        GroupDataFrame gdf= df.groupBy(new String[]{"id"});
+//
+//        DataFrame df3= gdf.apply(new Max());
+//        df3= gdf.apply(new Max());
+//        df3= gdf.apply(new Max());
+//        df3= gdf.apply(new Max());
+//        df3= gdf.apply(new Max());
+
+
+        HashMap<Integer, String> clients = new HashMap<>();
+        clients.put(123,"lala");
+        clients.put(12312,"lolo");
+        System.out.println("size: " + clients.size());
+        clients.remove(123);
+        System.out.println("size: " + clients.size());
+
+
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
 }

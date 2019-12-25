@@ -5,7 +5,10 @@ import files.DataFrame;
 import files.InconsistentTypeException;
 import files.Value;
 
-public class Max implements Applyable {
+import java.io.Serializable;
+
+public class Max implements Applyable, Serializable {
+    protected static final long serialVersionUID = 1112122200L;
 
     @Override
     public DataFrame apply(DataFrame df) throws InconsistentTypeException {
