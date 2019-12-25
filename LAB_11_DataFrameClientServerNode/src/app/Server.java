@@ -1,6 +1,7 @@
 package app;
 
 import files.DataFrame;
+import files.GroupDataFrame;
 
 import java.io.*;
 import java.net.*;
@@ -77,7 +78,7 @@ public class Server {
                     ObjectOutputStream sOutput = new ObjectOutputStream(socket.getOutputStream());
                     ObjectInputStream sInput = new ObjectInputStream(socket.getInputStream());
                     String who = (String) sInput.readObject();
-                    display(who + " just connected");
+                    display(who + " just connected, assigned ID: " + (uniqueId + 1));
 
                     if (who.equalsIgnoreCase("CLIENT")) {
                         ClientThread ct = new ClientThread(socket, sOutput, sInput);
@@ -141,40 +142,45 @@ public class Server {
         System.out.println(time + " " + msg);
     }
 
-    /**
-     * to broadcast a message
-     */
-    private synchronized void broadcast(Integer id, String message) {
-        // add HH:mm:ss and \n to the message
-        String time = sdf.format(new Date());
-    }
-
     synchronized void remove(int id) {
         // scan the maps until we found the Id (first clients, because we rather not remove nodes)
-        for (Map.Entry<Integer, ClientThread> pair : clients.entrySet()) {
-            ClientThread ct = pair.getValue();
-            // found it
-            if (ct.id == id) {
-                clients.remove(pair.getKey());
-                return;
-            }
+        if(clients.containsKey(id)){
+            clients.remove(id);
         }
-        for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
-            NodeThread nt = pair.getValue();
-            // found it
-            if (nt.id == id) {
-                clients.remove(pair.getKey());
-                return;
-            }
+        else if(nodes.containsKey(id)){
+            nodes.remove(id);
         }
     }
 
     synchronized void divideGDFbetweenNodes(ServerRequestGDF srGDF, Integer clientID){
         //rozczytaj ile masz nodeow i podzielić srGDF na tyle nrGDF jesli nie ma żadnego odesłać że ups ale nie nie ma zadnych nodow
-        display("rozdzielam na: " + nodes.size() + " node'ow");
+        if(nodes.size()==0){
+            clients.get(clientID).writeMsg("There are not any nodes to do your request :(");
+        }
+        else {
+            ArrayList<NodeRequestGDF> nodeRequestGDFArrayList = new ArrayList<>();
+            if (srGDF.getGroupedDF().getSize() > nodes.size()) { //check if there aren't more nodes than groups
+                for (int i = 0; i < nodes.size(); ++i) {
+                    nodeRequestGDFArrayList.add(new NodeRequestGDF(srGDF.getFunction(), new GroupDataFrame(), clientID));
+                }
+            } else {
+                for (int i = 0; i < srGDF.getGroupedDF().getSize(); ++i) {
+                    nodeRequestGDFArrayList.add(new NodeRequestGDF(srGDF.getFunction(), new GroupDataFrame(), clientID));
+                }
+            }
 
-        for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
-            pair.getValue().writeMsg("hehe przydzielam ci zadanie od klienta o ID: " + clientID);
+            Integer iter = 0;
+            for (DataFrame df : srGDF.getGroupedDF().getData()) {
+                nodeRequestGDFArrayList.get((iter % nodeRequestGDFArrayList.size())).getGroupedDF().getData().add(df);
+                iter++;
+            }
+
+            Integer iter2 = 0;
+            for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()){
+                pair.getValue().sendNRGDFtoNode(nodeRequestGDFArrayList.get(iter2));
+                iter2++;
+                if (iter2 >= nodeRequestGDFArrayList.size()) break;
+            }
         }
 
     }
@@ -205,6 +211,7 @@ public class Server {
             this.sOutput = sOutput;
 
             date = new Date().toString() + "\n";
+            dfToReturn=new DataFrame();
         }
 
         // what will run forever
@@ -216,46 +223,26 @@ public class Server {
                 try {
                     Object obj = sInput.readObject();
                     if (obj instanceof String) {
-                        display((String) obj);
+                        String msg= (String) obj;
+                        if(msg.equalsIgnoreCase("LOGOUT")){
+                            display("LOGOUT Client ID: " +  this.id);break;
+                        }
+                        else {
+                            display(msg);
+                        }
                     } else if (obj instanceof ServerRequestGDF) {
-                        display("Dostałem ServerRequest");
-                        divideGDFbetweenNodes((ServerRequestGDF) obj, id );
+                        display("Server has received request from client ID: " + this.id);
+                        requestGDF= (ServerRequestGDF) obj;
+                        divideGDFbetweenNodes(requestGDF, id );
                     } else {
                         display("WHAT IS THIS!!!");
                     }
                 } catch (IOException e) {
-                    display("Client id: " + id + " Exception reading Streams: " + e);
+                    display("Client ID: " + id + " Exception reading Streams: " + e);
                     break;
                 } catch (ClassNotFoundException e2) {
                     break;
                 }
-                display("Server has receive request from client: " + this.id);
-
-//                // Switch on the type of message receive
-//                switch (cm.getType()) {
-//
-//                    case ChatMessage.MESSAGE:
-//                        broadcast(id, message);
-//                        break;
-//                    case ChatMessage.WRITE_TO:
-//                        writeTo = message;
-//                        writeMsg("Now you are writing to: " + writeTo + " \n\n> ");
-//                        break;
-//                    case ChatMessage.LOGOUT:
-//                        display(username + " disconnected with a LOGOUT message.");
-//                        keepGoing = false;
-//                        break;
-//                    case ChatMessage.WHOISIN:
-//                        writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
-//                        // scan all the users connected
-//                        Integer iter = 0;
-//                        for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
-//                            ClientThread ct = pair.getValue();
-//                            writeMsg((iter + 1) + ") " + ct.username + " since " + ct.date);
-//                            iter++;
-//                        }
-//                        break;
-//                }
             }
             // remove myself from the arrayList containing the list of the
             // connected Clients
@@ -301,6 +288,33 @@ public class Server {
             }
             return true;
         }
+
+        public boolean sendDFtoClient(DataFrame dataFrame) {
+            // if Client is still connected send the message to it
+            if (!socket.isConnected()) {
+                close();
+                return false;
+            }
+            try {
+                sOutput.writeObject(dataFrame);
+            }
+            // if an error occurs, do not abort just inform the user
+            catch (IOException e) {
+                display("Error sending message to " + id);
+                display(e.toString());
+            }
+            return true;
+        }
+
+        synchronized public void addResultFromNode(DataFrame dataFrame){
+            if(dfToReturn==null) dfToReturn = new DataFrame();
+            dfToReturn.addAnotherDF(dataFrame);
+            if(dfToReturn.size()==requestGDF.getGroupedDF().getSize()){
+                display("Server has completed all results to request and returns DataFrame to client ID: " + this.id);
+                sendDFtoClient(dfToReturn);
+                dfToReturn = null;
+            }
+        }
     }
 
     /**
@@ -339,11 +353,18 @@ public class Server {
                 try {
                     Object obj = sInput.readObject();
                     if (obj instanceof String) {
-                        display((String) obj);
-                    } else if (obj instanceof ServerRequestGDF) {
-                        display("Dostałem DataFrame'a");
+                        String msg= (String) obj;
+                        if(msg.equalsIgnoreCase("LOGOUT")){
+                            display("LOGOUT Node ID: " +  this.id);break;
+                        }
+                        else {
+                            display(msg);
+                        }
+                    } else if (obj instanceof NodeResultDF) {
+                        display("I have received NodeResultDF from Node ID: "+ this.id + " to Client ID: " + ((NodeResultDF) obj).clientID);
+                        clients.get(((NodeResultDF) obj).clientID).addResultFromNode(((NodeResultDF) obj).dataFrame);
                     } else {
-                        display("WHAT IS THIS!!!");
+                        display("I have received something i do not know what is this :(");
                     }
                 } catch (IOException e) {
                     display("Node id: " + id + " Exception reading Streams: " + e);
@@ -351,7 +372,6 @@ public class Server {
                 } catch (ClassNotFoundException e2) {
                     break;
                 }
-                display("Server has receive DataFrame from Node: " + this.id);
             }
             // remove myself from the arrayList containing the list of the
             // connected Clients
@@ -389,6 +409,24 @@ public class Server {
             // write the message to the stream
             try {
                 sOutput.writeObject(msg);
+            }
+            // if an error occurs, do not abort just inform the user
+            catch (IOException e) {
+                display("Error sending message to " + id);
+                display(e.toString());
+            }
+            return true;
+        }
+
+         public boolean sendNRGDFtoNode(NodeRequestGDF nrGDF){
+            // if Client is still connected send the message to it
+            if (!socket.isConnected()) {
+                close();
+                return false;
+            }
+            try {
+                //NodeRequestGDF lala= new NodeRequestGDF("lala", new DataFrame().groupBy(new String[]{""}),23 );
+                sOutput.writeObject((NodeRequestGDF) nrGDF);
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {

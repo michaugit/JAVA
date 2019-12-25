@@ -4,6 +4,7 @@ import files.*;
 
 import java.net.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 // E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
@@ -19,10 +20,13 @@ public class Node {
     private DataFrame dataframe;
     private String server;
     private int port;
+    // to display time
+    private SimpleDateFormat sdf;
 
     Node(String server, int port) {
         this.server = server;
         this.port = port;
+        sdf = new SimpleDateFormat("HH:mm:ss");
     }
 
     /**
@@ -72,15 +76,14 @@ public class Node {
         // loop forever for message from the user
         while (true) {
             // read message from user
-            System.out.print("> ");
             String msg = scan.nextLine();
             // logout if message is LOGOUT
             if (msg.equalsIgnoreCase("LOGOUT")) {
-                //client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+                node.sendMessageToServer("LOGOUT");
                 // break to do the disconnect
                 break;
             } else {
-                System.out.println("Incorrect request, you can only logout by LOGOUT");
+                node.display("Incorrect request, you can only logout by LOGOUT");
             }
         }
         // done disconnect
@@ -126,15 +129,24 @@ public class Node {
     }
 
     private void display(String msg) {
-        System.out.println(msg);      // println in console
+        String time = sdf.format(new Date());
+        System.out.println(time + " " + msg);
     }
 
     /**
      * To send a message to the server
      */
-    void sendToServer(ServerRequestGDF msg) {
+    void sendMessageToServer(String message){
         try {
-            sOutput.writeObject(msg);
+            sOutput.writeObject(message);
+        } catch (IOException e) {
+            display("Exception writing to server: " + e);
+        }
+    }
+
+    void sendToServer(NodeResultDF ndfResult) {
+        try {
+            sOutput.writeObject(ndfResult);
         } catch (IOException e) {
             display("Exception writing to server: " + e);
         }
@@ -162,18 +174,38 @@ public class Node {
         public void run() {
             while (true) {
                 try {
-                    String msg = (String) sInput.readObject();
-                    display(msg);
-                    try {
-                        sOutput.writeObject("Obliczyłem :D");
+                    Object obj = sInput.readObject();
+                    if (obj instanceof String) {
+                        display((String) obj);
+                    } else if (obj instanceof NodeRequestGDF) {
+                        display("I have received NodeRequest from client ID: " + ((NodeRequestGDF) obj).getClientID());
+
+                        DataFrame returnToServer = (((NodeRequestGDF) obj).groupedDF.apply(((NodeRequestGDF) obj).getFunction()));
+
+
+
+                        //tu coś jest nie tak jeśli zostanie użyte applywithThreads to  NodeResultDF jest tworzone za szybko
+                        //i zostaje wysłany pusty DF jeśli się poczeka chwilke to wszystko jest ok :/
+
+//                        DataFrame returnToServer = (((NodeRequestGDF) obj).groupedDF.applywithThreads(((NodeRequestGDF) obj).getFunction()));
+//                        while (returnToServer.size() != (((NodeRequestGDF) obj).getGroupedDF().getSize()));
+
+                        System.out.println("NodeRequest size: " + ((NodeRequestGDF) obj).groupedDF.getSize());
+                        System.out.println("returnToserver size: " + returnToServer.size());
+                        NodeResultDF nodeResultDF = new NodeResultDF(returnToServer, ((NodeRequestGDF) obj).getClientID());
+                        sendToServer(nodeResultDF);
+                        display("I have returned result to Server to client ID: " + nodeResultDF.clientID);
+
+                    } else {
+                        display("I have received something i do not know what is this :(");
                     }
-                    catch(Exception exc){}
                 } catch (IOException e) {
                     display("Server has close the connection: " + e);
-                    e.printStackTrace();
                     System.exit(0);
                 } catch (ClassNotFoundException e2) {
                     e2.printStackTrace();
+                } catch (InconsistentTypeException e) {
+                    e.printStackTrace();
                 }
             }
         }

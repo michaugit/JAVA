@@ -1,5 +1,6 @@
 package app;
 
+import GroupFunctions.Applyable;
 import files.*;
 
 import java.io.Serializable;
@@ -7,20 +8,20 @@ import java.io.Serializable;
 public class ServerRequestGDF implements Serializable {
     protected static final long serialVersionUID = 1112122200L;
 
-    protected String function;
+    protected Applyable function;
     protected GroupDataFrame groupedDF;
 
-    public ServerRequestGDF(String fun, GroupDataFrame gDF) {
+    public ServerRequestGDF(Applyable fun, GroupDataFrame gDF) {
         this.function = fun;
         this.groupedDF = gDF;
     }
 
     //getters
-    String getFunction() {
+    public Applyable getFunction() {
         return function;
     }
 
-    GroupDataFrame getGroupedDF() {
+    public GroupDataFrame getGroupedDF() {
         return groupedDF;
     }
 }

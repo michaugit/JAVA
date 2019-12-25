@@ -1,9 +1,11 @@
 package app;
 
+import GroupFunctions.*;
 import files.*;
 
 import java.net.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 // E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
@@ -19,14 +21,16 @@ public class Client {
     private DataFrame dataframe;
     private String server;
     private int port;
+    // to display time
+    private SimpleDateFormat sdf;
 
     Client(String server, int port) {
         this.server = server;
         this.port = port;
-        System.out.println("Loading dataframe from csv, please wait!");
-        dataframe = new DataFrame();
-        //dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
-        System.out.println("Dataframe loaded!");
+        sdf = new SimpleDateFormat("HH:mm:ss");
+        display("Loading dataframe from csv, please wait!");
+        dataframe= new DataFrame("C:\\Users\\resta\\Desktop\\group2.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+        display("Dataframe loaded!");
     }
 
     /**
@@ -76,23 +80,49 @@ public class Client {
         // loop forever for message from the user
         while (true) {
             // read message from user
-            System.out.print("> ");
             String msg = scan.nextLine();
             // logout if message is LOGOUT
             if (msg.equalsIgnoreCase("LOGOUT")) {
-                //client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+                client.sendMessageToServer("LOGOUT");
                 // break to do the disconnect
                 break;
             } else {
-                System.out.println("MESSAGE TO SENT TO THE SERVER: " + msg);
+                client.display("MESSAGE TO SENT TO THE SERVER: " + msg);
                 if (msg.matches("^groupby\\((\"[^\"]+\")(,\"[^\"]+\")*\\)\\..+\\(\\)$")) {
                     String[] tmp = msg.split("\\.");
                     String keysTmp = (tmp[0].substring(8, tmp[0].length() - 1)).replace("\"", "");
                     String[] keys = keysTmp.split(",");
-                    String fun = tmp[1];
+                    Applyable fun= null;
+                    switch(tmp[1]) {
+                        case "max()":
+                            fun = new Max();
+                            break;
+                        case "min()":
+                            fun = new Min();
+                            break;
+                        case "mean()":
+                            fun = new Mean();
+                            break;
+                        case "mediana":
+                            fun = new Mediana();
+                            break;
+                        case "std()":
+                            fun = new Std();
+                            break;
+                        case "sum()":
+                            fun = new Sum();
+                            break;
+                        case "var()":
+                            fun = new Var();
+                            break;
+                        default:
+                            System.out.println("Function not found");
+                            break;
+                    }
+
                     GroupDataFrame GDF = client.dataframe.groupBy(keys);
                     client.sendToServer(new ServerRequestGDF(fun, GDF));
-                    System.out.println("Request was sent to server!");
+                    client.display("Request was sent to server!");
                 } else {
                     System.out.println("Invalid request");
                     System.out.println("Usage is : > groupby(\"[something]\").[function]()");
@@ -143,12 +173,21 @@ public class Client {
     }
 
     private void display(String msg) {
-        System.out.println(msg);      // println in console
+        String time = sdf.format(new Date());
+        System.out.println(time + " " + msg);
     }
 
     /**
      * To send a message to the server
      */
+    void sendMessageToServer(String message){
+        try {
+            sOutput.writeObject(message);
+        } catch (IOException e) {
+            display("Exception writing to server: " + e);
+        }
+    }
+
     void sendToServer(ServerRequestGDF msg) {
         try {
             sOutput.writeObject(msg);
@@ -179,11 +218,19 @@ public class Client {
         public void run() {
             while (true) {
                 try {
-                    String msg = (String) sInput.readObject();
-                    display(msg);
+                    Object obj = sInput.readObject();
+                    if( obj instanceof String){
+                        display((String) obj);
+                    }
+                    if( obj instanceof  DataFrame){
+                        display("I have received DataFrame!!! :)");
+                        ((DataFrame) obj).print();
+                    }
+                    else{
+                        display("I have received something i do not know what is this :(");
+                    }
                 } catch (IOException e) {
                     display("Server has close the connection: " + e);
-                    e.printStackTrace();
                     System.exit(0);
                 } catch (ClassNotFoundException e2) {
                     e2.printStackTrace();
