@@ -316,26 +316,16 @@ public class Main {
 
 
 
-//        DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group2.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
-//
-//        GroupDataFrame gdf= df.groupBy(new String[]{"id"});
-//
-//        DataFrame df3= gdf.apply(new Max());
+        DataFrame df = new DataFrame("C:\\Users\\resta\\Desktop\\group2.csv", new Class[]{StringObject.class, DateObject.class, DoubleObject.class, DoubleObject.class});
+
+        GroupDataFrame gdf= df.groupBy(new String[]{"id"});
+
+        DataFrame df3= gdf.apply(new Max());
+        df3.print();
 //        df3= gdf.apply(new Max());
 //        df3= gdf.apply(new Max());
 //        df3= gdf.apply(new Max());
 //        df3= gdf.apply(new Max());
-
-
-        HashMap<Integer, String> clients = new HashMap<>();
-        clients.put(123,"lala");
-        clients.put(12312,"lolo");
-        System.out.println("size: " + clients.size());
-        clients.remove(123);
-        System.out.println("size: " + clients.size());
-
-
-
 
 
 

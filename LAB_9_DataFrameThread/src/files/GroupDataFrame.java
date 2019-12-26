@@ -8,8 +8,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class GroupDataFrame implements GroupBy, Serializable {
     protected static final long serialVersionUID = 1112122200L;
@@ -55,6 +58,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -80,6 +84,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -105,6 +110,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -130,6 +136,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -155,6 +162,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -180,6 +188,7 @@ public class GroupDataFrame implements GroupBy, Serializable {
             threadPool.execute(th);
         }
         threadPool.shutdown();
+        while(!threadPool.isTerminated()) {}
         return ret;
     }
 
@@ -191,16 +200,38 @@ public class GroupDataFrame implements GroupBy, Serializable {
         }
         return ret;
     }
-    public DataFrame applywithThreads(Applyable fun) {
+    public DataFrame applyWithThreads(Applyable fun) {
+//        DataFrame ret = new DataFrame();
+//        ArrayList<DataFrameThread> threadList = new ArrayList<>();
+//        for (DataFrame df : this.data) {
+//            DataFrameThread tmp = new DataFrameThread(df, fun, ret);
+//            threadList.add(tmp);
+//        }
+//        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_Threads);
+//        for (DataFrameThread th : threadList) {
+//            threadPool.execute(th);
+//        }
+//        threadPool.shutdown();
+//        while(!threadPool.isTerminated()) {}
+//        return ret;
+
+// other "type" of threadpool
         DataFrame ret = new DataFrame();
-        ArrayList<DataFrameThread> threadList = new ArrayList<>();
+        List<Future<DataFrameThread>> futures = new ArrayList<Future<DataFrameThread>>();
+        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_Threads);
         for (DataFrame df : this.data) {
             DataFrameThread tmp = new DataFrameThread(df, fun, ret);
-            threadList.add(tmp);
+            futures.add(threadPool.submit(tmp, (DataFrameThread) null));
         }
-        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_Threads);
-        for (DataFrameThread th : threadList) {
-            threadPool.execute(th);
+
+        for (Future<DataFrameThread> future : futures) {
+//            // this joins with the submitted job
+            try {
+                future.get();
+            }
+            catch (ExecutionException | InterruptedException e){
+                e.printStackTrace();
+            }
         }
         threadPool.shutdown();
         return ret;

@@ -2,7 +2,7 @@ package files;
 
 import GroupFunctions.Applyable;
 
-public class DataFrameThread extends Thread {
+public class DataFrameThread implements Runnable {
     DataFrame ret;
     DataFrame DF;
     Applyable fun;
