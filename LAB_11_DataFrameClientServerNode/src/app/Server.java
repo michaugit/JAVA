@@ -1,18 +1,24 @@
 package app;
 
 import files.DataFrame;
+import files.DataFrameThread;
 import files.GroupDataFrame;
 
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // E:\Java\GIT\LAB_11_DataFrameClientServerNode\out\production\LAB_11_DataFrameClientServerNode
 
 // java -cp E:\Java\GIT\LAB_9_DataFrameThread\out\artifacts\LAB_9_DataFrameThread_jar\LAB_9_DataFrameThread.jar; app.Server
 
 public class Server {
+    static final int MAX_clients=10;
+    static final int MAX_nodes=10;
+
     // a unique ID for each connection
     private static int uniqueId;
     HashMap<Integer, ClientThread> clients;
@@ -68,12 +74,14 @@ public class Server {
         try {
             // the socket used by the server
             ServerSocket serverSocket = new ServerSocket(port);
+            ExecutorService clientsThreadPool = Executors.newFixedThreadPool(MAX_clients);
+            ExecutorService nodesThreadPool = Executors.newFixedThreadPool(MAX_nodes);
 
             // infinite loop to wait for connections
             while (keepGoing) {
                 display("Server is waiting on port " + port + ".");
                 Socket socket = serverSocket.accept();      // accept connection
-                System.out.println("Thread trying to create Object Input/Output Streams");
+                display("Thread trying to create Object Input/Output Streams");
                 try {
                     ObjectOutputStream sOutput = new ObjectOutputStream(socket.getOutputStream());
                     ObjectInputStream sInput = new ObjectInputStream(socket.getInputStream());
@@ -82,12 +90,14 @@ public class Server {
 
                     if (who.equalsIgnoreCase("CLIENT")) {
                         ClientThread ct = new ClientThread(socket, sOutput, sInput);
-                        clients.put(ct.id, ct);
-                        ct.start();
+                        clientsThreadPool.execute(ct);
+//                        clients.put(ct.id, ct);
+//                        ct.start();
                     } else if (who.equalsIgnoreCase("NODE")) {
                         NodeThread nt = new NodeThread(socket, sOutput, sInput);
-                        nodes.put(nt.id, nt);
-                        nt.start();
+                        nodesThreadPool.execute(nt);
+//                        nodes.put(nt.id, nt);
+//                        nt.start();
                     }
                 } catch (IOException e) {
                     display("Exception creating new Input/output Streams: " + e);
@@ -95,23 +105,38 @@ public class Server {
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
+                if (!keepGoing)  break;      // if I was asked to stop
 
-                if (!keepGoing) break;      // if I was asked to stop
             }
 
             // I was asked to stop
             try {
                 serverSocket.close();
-//                for (Map.Entry<Integer, ClientThread> pair : loggedClients.entrySet()) {
-//                    ClientThread tc = pair.getValue();
-//                    try {
-//                        tc.sInput.close();
-//                        tc.sOutput.close();
-//                        tc.socket.close();
-//                    } catch (IOException ioE) {
-//                        // not much I can do
-//                    }
-//                }
+                for (Map.Entry<Integer, ClientThread> pair : clients.entrySet()) {
+                    ClientThread tc = pair.getValue();
+                    try {
+                        tc.sInput.close();
+                        tc.sOutput.close();
+                        tc.socket.close();
+                    } catch (IOException ioE) {
+                        // not much I can do
+                    }
+                }
+                for (Map.Entry<Integer, NodeThread> pair : nodes.entrySet()) {
+                    NodeThread tc = pair.getValue();
+                    try {
+                        tc.sInput.close();
+                        tc.sOutput.close();
+                        tc.socket.close();
+                    } catch (IOException ioE) {
+                        // not much I can do
+                    }
+                }
+                clientsThreadPool.shutdown();
+                nodesThreadPool.shutdown();
+                while(!clientsThreadPool.isTerminated()) {}
+                while(!nodesThreadPool.isTerminated()) {}
+
             } catch (Exception e) {
                 display("Exception closing the server and clients: " + e);
             }
@@ -153,11 +178,11 @@ public class Server {
     }
 
     synchronized void divideGDFbetweenNodes(ServerRequestGDF srGDF, Integer clientID){
-        //rozczytaj ile masz nodeow i podzielić srGDF na tyle nrGDF jesli nie ma żadnego odesłać że ups ale nie nie ma zadnych nodow
         if(nodes.size()==0){
             clients.get(clientID).writeMsg("There are not any nodes to do your request :(");
         }
         else {
+            display("Spliting the task for: " + nodes.size() + " nodes");
             ArrayList<NodeRequestGDF> nodeRequestGDFArrayList = new ArrayList<>();
             if (srGDF.getGroupedDF().getSize() > nodes.size()) { //check if there aren't more nodes than groups
                 for (int i = 0; i < nodes.size(); ++i) {
@@ -216,6 +241,7 @@ public class Server {
 
         // what will run forever
         public void run() {
+            clients.put(this.id, this);
             // to loop until LOGOUT
             boolean keepGoing = true;
             while (keepGoing) {
@@ -231,11 +257,11 @@ public class Server {
                             display(msg);
                         }
                     } else if (obj instanceof ServerRequestGDF) {
-                        display("Server has received request from client ID: " + this.id);
+                        display("Server has received ServerRequest from client ID: " + this.id);
                         requestGDF= (ServerRequestGDF) obj;
                         divideGDFbetweenNodes(requestGDF, id );
                     } else {
-                        display("WHAT IS THIS!!!");
+                        display("Server has received something i do not know what is this :(");
                     }
                 } catch (IOException e) {
                     display("Client ID: " + id + " Exception reading Streams: " + e);
@@ -283,7 +309,7 @@ public class Server {
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
-                display("Error sending message to " + id);
+                display("Error sending message to client ID: " + id);
                 display(e.toString());
             }
             return true;
@@ -300,7 +326,7 @@ public class Server {
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
-                display("Error sending message to " + id);
+                display("Error sending message to client ID: " + id);
                 display(e.toString());
             }
             return true;
@@ -310,7 +336,7 @@ public class Server {
             if(dfToReturn==null) dfToReturn = new DataFrame();
             dfToReturn.addAnotherDF(dataFrame);
             if(dfToReturn.size()==requestGDF.getGroupedDF().getSize()){
-                display("Server has completed all results to request and returns DataFrame to client ID: " + this.id);
+                display("Server has completed all the NodeResults for the ServerRequest and returns DataFrame to client ID: " + this.id);
                 sendDFtoClient(dfToReturn);
                 dfToReturn = null;
             }
@@ -346,6 +372,7 @@ public class Server {
 
         // what will run forever
         public void run() {
+            nodes.put(this.id, this);
             // to loop until LOGOUT
             boolean keepGoing = true;
             while (keepGoing) {
@@ -361,10 +388,10 @@ public class Server {
                             display(msg);
                         }
                     } else if (obj instanceof NodeResultDF) {
-                        display("I have received NodeResultDF from Node ID: "+ this.id + " to Client ID: " + ((NodeResultDF) obj).clientID);
+                        display("Server has received NodeResultDF from Node ID: "+ this.id + " to Client ID: " + ((NodeResultDF) obj).clientID);
                         clients.get(((NodeResultDF) obj).clientID).addResultFromNode(((NodeResultDF) obj).dataFrame);
                     } else {
-                        display("I have received something i do not know what is this :(");
+                        display("Server has received something i do not know what is this :(");
                     }
                 } catch (IOException e) {
                     display("Node id: " + id + " Exception reading Streams: " + e);
@@ -412,7 +439,7 @@ public class Server {
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
-                display("Error sending message to " + id);
+                display("Error sending message to node ID: " + id);
                 display(e.toString());
             }
             return true;
@@ -430,7 +457,12 @@ public class Server {
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
-                display("Error sending message to " + id);
+                display("Error sending NodeRequest to node ID: " + id);
+                display("Separation of tasks into working nodes");
+                remove(id);
+
+                ServerRequestGDF  srGDF = new ServerRequestGDF(nrGDF.getFunction(),nrGDF.getGroupedDF());
+                divideGDFbetweenNodes(srGDF, nrGDF.getClientID());
                 display(e.toString());
             }
             return true;

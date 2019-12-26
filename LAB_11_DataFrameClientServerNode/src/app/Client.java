@@ -103,7 +103,7 @@ public class Client {
                         case "mean()":
                             fun = new Mean();
                             break;
-                        case "mediana":
+                        case "mediana()":
                             fun = new Mediana();
                             break;
                         case "std()":

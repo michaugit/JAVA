@@ -179,17 +179,7 @@ public class Node {
                         display((String) obj);
                     } else if (obj instanceof NodeRequestGDF) {
                         display("I have received NodeRequest from client ID: " + ((NodeRequestGDF) obj).getClientID());
-
-                        DataFrame returnToServer = (((NodeRequestGDF) obj).groupedDF.apply(((NodeRequestGDF) obj).getFunction()));
-
-
-
-                        //tu coś jest nie tak jeśli zostanie użyte applywithThreads to  NodeResultDF jest tworzone za szybko
-                        //i zostaje wysłany pusty DF jeśli się poczeka chwilke to wszystko jest ok :/
-
-//                        DataFrame returnToServer = (((NodeRequestGDF) obj).groupedDF.applywithThreads(((NodeRequestGDF) obj).getFunction()));
-//                        while (returnToServer.size() != (((NodeRequestGDF) obj).getGroupedDF().getSize()));
-
+                        DataFrame returnToServer = (((NodeRequestGDF) obj).groupedDF.applyWithThreads(((NodeRequestGDF) obj).getFunction()));
                         System.out.println("NodeRequest size: " + ((NodeRequestGDF) obj).groupedDF.getSize());
                         System.out.println("returnToserver size: " + returnToServer.size());
                         NodeResultDF nodeResultDF = new NodeResultDF(returnToServer, ((NodeRequestGDF) obj).getClientID());
@@ -204,8 +194,6 @@ public class Node {
                     System.exit(0);
                 } catch (ClassNotFoundException e2) {
                     e2.printStackTrace();
-                } catch (InconsistentTypeException e) {
-                    e.printStackTrace();
                 }
             }
         }
